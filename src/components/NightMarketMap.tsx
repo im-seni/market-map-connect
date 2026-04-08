@@ -7,20 +7,25 @@ interface NightMarketMapProps {
 
 const NightMarketMap = ({ stores, onStoreClick }: NightMarketMapProps) => {
   return (
-    <div className="relative w-full aspect-[4/5] md:aspect-[16/10] rounded-lg overflow-hidden bg-secondary border border-border">
+    <div className="relative w-full aspect-[4/5] md:aspect-[16/10] rounded-card overflow-hidden bg-secondary border border-border shadow-elevate-sm">
       {/* Map background with paths */}
       <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
         {/* Main paths */}
-        <path d="M 5 20 Q 30 20 50 15 Q 70 10 95 25" stroke="hsl(20 8% 25%)" strokeWidth="3" fill="none" strokeLinecap="round" />
-        <path d="M 5 50 Q 25 45 50 50 Q 75 55 95 45" stroke="hsl(20 8% 25%)" strokeWidth="3" fill="none" strokeLinecap="round" />
-        <path d="M 10 80 Q 35 75 50 82 Q 70 88 90 78" stroke="hsl(20 8% 25%)" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path d="M 5 20 Q 30 20 50 15 Q 70 10 95 25" stroke="hsl(var(--neutral-lightgray))" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path d="M 5 50 Q 25 45 50 50 Q 75 55 95 45" stroke="hsl(var(--neutral-lightgray))" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path d="M 10 80 Q 35 75 50 82 Q 70 88 90 78" stroke="hsl(var(--neutral-lightgray))" strokeWidth="3" fill="none" strokeLinecap="round" />
         {/* Vertical paths */}
-        <path d="M 25 10 Q 22 40 20 60 Q 18 75 15 95" stroke="hsl(20 8% 22%)" strokeWidth="2" fill="none" strokeLinecap="round" />
-        <path d="M 55 5 Q 50 30 48 50 Q 50 70 52 95" stroke="hsl(20 8% 22%)" strokeWidth="2" fill="none" strokeLinecap="round" />
-        <path d="M 80 8 Q 78 35 75 55 Q 80 70 82 90" stroke="hsl(20 8% 22%)" strokeWidth="2" fill="none" strokeLinecap="round" />
-        {/* Decorative lanterns along the path */}
-        {[15, 35, 55, 75].map((x, i) => (
-          <circle key={i} cx={x} cy={i % 2 === 0 ? 8 : 92} r="1" fill="hsl(0 70% 50%)" opacity="0.5" />
+        <path d="M 25 10 Q 22 40 20 60 Q 18 75 15 95" stroke="hsl(var(--brand-navy) / 0.35)" strokeWidth="2" fill="none" strokeLinecap="round" />
+        <path d="M 55 5 Q 50 30 48 50 Q 50 70 52 95" stroke="hsl(var(--brand-navy) / 0.35)" strokeWidth="2" fill="none" strokeLinecap="round" />
+        <path d="M 80 8 Q 78 35 75 55 Q 80 70 82 90" stroke="hsl(var(--brand-navy) / 0.35)" strokeWidth="2" fill="none" strokeLinecap="round" />
+        {/* Decorative markers along the path */}
+        {[
+          { x: 15, c: "var(--accent-coral)" },
+          { x: 35, c: "var(--accent-yellow)" },
+          { x: 55, c: "var(--accent-aqua)" },
+          { x: 75, c: "var(--accent-coral)" },
+        ].map((dot, i) => (
+          <circle key={i} cx={dot.x} cy={i % 2 === 0 ? 8 : 92} r="1.2" fill={`hsl(${dot.c})`} opacity="0.65" />
         ))}
       </svg>
 

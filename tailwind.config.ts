@@ -13,8 +13,45 @@ export default {
       },
     },
     extend: {
+      maxWidth: {
+        frame: "var(--frame-width)",
+      },
+      minHeight: {
+        frame: "var(--frame-min-height)",
+      },
+      spacing: {
+        /* 8pt grid: 4, 8, 12, 16, 20, 24, 32 (px) */
+        g1: "4px",
+        g2: "8px",
+        g3: "12px",
+        g4: "16px",
+        g5: "20px",
+        g6: "24px",
+        g8: "32px",
+      },
+      borderRadius: {
+        chip: "var(--radius-chip)",
+        card: "var(--radius-card)",
+        sheet: "var(--radius-sheet)",
+        pill: "var(--radius-pill)",
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
+      boxShadow: {
+        elevate: "var(--shadow-md)",
+        "elevate-sm": "var(--shadow-sm)",
+        "elevate-lg": "var(--shadow-lg)",
+      },
+      fontSize: {
+        display: ["28px", { lineHeight: "34px", fontWeight: "700" }],
+        title: ["22px", { lineHeight: "28px", fontWeight: "600" }],
+        heading: ["18px", { lineHeight: "24px", fontWeight: "600" }],
+        body: ["15px", { lineHeight: "22px", fontWeight: "400" }],
+        caption: ["13px", { lineHeight: "18px", fontWeight: "500" }],
+      },
       fontFamily: {
-        sans: ["'Noto Sans KR'", "sans-serif"],
+        sans: ["'Noto Sans KR'", "'Inter'", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -53,6 +90,20 @@ export default {
         neon: "hsl(var(--neon-glow))",
         warm: "hsl(var(--warm))",
         lantern: "hsl(var(--lantern))",
+        brand: {
+          royal: "hsl(var(--brand-royal))",
+          navy: "hsl(var(--brand-navy))",
+          coral: "hsl(var(--accent-coral))",
+          green: "hsl(var(--accent-green))",
+          blue: "hsl(var(--accent-blue))",
+          aqua: "hsl(var(--accent-aqua))",
+          "pink-soft": "hsl(var(--accent-pink-soft))",
+          "pink-light": "hsl(var(--accent-pink-light))",
+          yellow: "hsl(var(--accent-yellow))",
+          offwhite: "hsl(var(--neutral-offwhite))",
+          lightgray: "hsl(var(--neutral-lightgray))",
+          muted: "hsl(var(--neutral-muted))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -63,11 +114,6 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-      },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
         "accordion-down": {

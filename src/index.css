@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,48 +6,77 @@
 
 @layer base {
   :root {
-    --background: 20 14% 8%;
-    --foreground: 40 30% 92%;
+    /* Brand palette (hex → HSL, space-separated for hsl(var(--token))) */
+    --brand-royal: 223 64% 37%;
+    --brand-navy: 216 73% 25%;
+    --text-primary: 200 21% 28%;
+    --accent-coral: 12 88% 65%;
+    --accent-green: 106 48% 56%;
+    --accent-blue: 207 76% 37%;
+    --accent-aqua: 195 70% 47%;
+    --accent-pink-soft: 343 49% 73%;
+    --accent-pink-light: 340 66% 83%;
+    --accent-yellow: 42 89% 54%;
+    --neutral-offwhite: 0 20% 99%;
+    --neutral-lightgray: 197 10% 87%;
+    --neutral-muted: 300 2% 64%;
 
-    --card: 20 12% 12%;
-    --card-foreground: 40 30% 92%;
+    --background: var(--neutral-offwhite);
+    --foreground: var(--text-primary);
 
-    --popover: 20 14% 10%;
-    --popover-foreground: 40 30% 92%;
+    --card: 0 0% 100%;
+    --card-foreground: var(--text-primary);
 
-    --primary: 36 90% 55%;
-    --primary-foreground: 20 14% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: var(--text-primary);
 
-    --secondary: 20 10% 18%;
-    --secondary-foreground: 40 20% 80%;
+    --primary: var(--brand-royal);
+    --primary-foreground: 0 0% 100%;
 
-    --muted: 20 8% 16%;
-    --muted-foreground: 30 10% 55%;
+    --secondary: 197 10% 93%;
+    --secondary-foreground: var(--text-primary);
 
-    --accent: 0 75% 58%;
-    --accent-foreground: 40 30% 95%;
+    --muted: 197 8% 94%;
+    --muted-foreground: var(--neutral-muted);
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --accent: var(--accent-coral);
+    --accent-foreground: 0 0% 100%;
 
-    --border: 20 10% 20%;
-    --input: 20 10% 20%;
-    --ring: 36 90% 55%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --radius: 0.75rem;
+    --border: var(--neutral-lightgray);
+    --input: var(--neutral-lightgray);
+    --ring: var(--brand-royal);
 
-    --neon-glow: 36 100% 65%;
-    --warm: 25 80% 50%;
-    --lantern: 0 70% 50%;
+    /* Figma frame: iPhone 14 */
+    --frame-width: 390px;
+    --frame-min-height: 844px;
 
-    --sidebar-background: 20 12% 10%;
-    --sidebar-foreground: 40 30% 92%;
-    --sidebar-primary: 36 90% 55%;
-    --sidebar-primary-foreground: 20 14% 8%;
-    --sidebar-accent: 20 10% 18%;
-    --sidebar-accent-foreground: 40 30% 92%;
-    --sidebar-border: 20 10% 20%;
-    --sidebar-ring: 36 90% 55%;
+    /* Radii (px) */
+    --radius-chip: 12px;
+    --radius-card: 16px;
+    --radius-sheet: 24px;
+    --radius-pill: 999px;
+    --radius: 16px;
+
+    /* Low elevation — soft navy tint (night readability) */
+    --shadow-sm: 0 1px 2px hsl(var(--brand-navy) / 0.06);
+    --shadow-md: 0 4px 16px hsl(var(--brand-navy) / 0.08), 0 1px 3px hsl(var(--brand-navy) / 0.05);
+    --shadow-lg: 0 8px 28px hsl(var(--brand-navy) / 0.1), 0 2px 8px hsl(var(--brand-navy) / 0.06);
+
+    --neon-glow: var(--accent-yellow);
+    --warm: var(--accent-coral);
+    --lantern: var(--accent-coral);
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: var(--text-primary);
+    --sidebar-primary: var(--brand-royal);
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 197 10% 93%;
+    --sidebar-accent-foreground: var(--text-primary);
+    --sidebar-border: var(--neutral-lightgray);
+    --sidebar-ring: var(--brand-royal);
   }
 }
 
@@ -56,30 +85,104 @@
     @apply border-border;
   }
 
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
   body {
-    @apply bg-background text-foreground font-sans;
-    font-family: 'Noto Sans KR', sans-serif;
+    overflow: hidden;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Noto Sans KR', 'Inter', system-ui, sans-serif;
+  }
+
+  /* Typography scale — bilingual-safe (KR + Latin) */
+  .type-display {
+    font-size: 28px;
+    line-height: 34px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .type-title {
+    font-size: 22px;
+    line-height: 28px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .type-heading {
+    font-size: 18px;
+    line-height: 24px;
+    font-weight: 600;
+  }
+
+  .type-body {
+    font-size: 15px;
+    line-height: 22px;
+    font-weight: 400;
+  }
+
+  .type-caption {
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 500;
   }
 }
 
 @layer utilities {
   .glow-amber {
-    box-shadow: 0 0 20px hsl(36 90% 55% / 0.3), 0 0 60px hsl(36 90% 55% / 0.1);
+    box-shadow:
+      0 0 20px hsl(var(--accent-yellow) / 0.35),
+      0 0 48px hsl(var(--brand-royal) / 0.15);
   }
 
   .glow-amber-sm {
-    box-shadow: 0 0 10px hsl(36 90% 55% / 0.2);
+    box-shadow: 0 0 12px hsl(var(--brand-royal) / 0.22);
   }
 
   .glow-red {
-    box-shadow: 0 0 15px hsl(0 70% 50% / 0.3);
+    box-shadow: 0 0 14px hsl(var(--accent-coral) / 0.4);
   }
 
   .text-glow {
-    text-shadow: 0 0 10px hsl(36 90% 55% / 0.5);
+    text-shadow: 0 0 12px hsl(var(--brand-royal) / 0.35);
   }
 
   .lantern-gradient {
-    background: linear-gradient(180deg, hsl(0 70% 50%) 0%, hsl(36 90% 55%) 100%);
+    background: linear-gradient(180deg, hsl(var(--brand-navy)) 0%, hsl(var(--brand-royal)) 100%);
+  }
+
+  .shadow-elevate-sm {
+    box-shadow: var(--shadow-sm);
+  }
+
+  .shadow-elevate-md {
+    box-shadow: var(--shadow-md);
+  }
+
+  .shadow-elevate-lg {
+    box-shadow: var(--shadow-lg);
+  }
+
+  .phone-frame {
+    width: 100%;
+    max-width: var(--frame-width);
+    height: min(100dvh, var(--frame-min-height));
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }
