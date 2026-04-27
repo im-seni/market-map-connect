@@ -29,17 +29,17 @@ export default function VendorMenuScreen() {
               <div className="flex flex-wrap gap-g2 items-center">
                 <p className="type-body font-semibold">{item.name}</p>
                 {item.popular && (
-                  <span className="rounded-pill bg-brand-yellow/30 px-g2 py-g1 type-caption font-semibold text-brand-navy">
+                  <span className="rounded-pill bg-brand-yellow/30 px-g2 py-g1 type-caption font-semibold text-brand-navy border border-brand-yellow">
                     인기 · Popular
                   </span>
                 )}
                 {item.spicy && (
-                  <span className="rounded-pill bg-brand-coral/15 px-g2 py-g1 type-caption font-semibold text-brand-coral">
+                  <span className="rounded-pill bg-brand-coral/15 px-g2 py-g1 type-caption font-semibold border border-destructive text-primary">
                     매운맛 · Spicy
                   </span>
                 )}
                 {item.signature && (
-                  <span className="rounded-pill bg-brand-royal/15 px-g2 py-g1 type-caption font-semibold text-brand-royal">
+                  <span className="rounded-pill bg-brand-royal/15 px-g2 py-g1 type-caption font-semibold text-brand-royal border border-primary">
                     시그니처 · Signature
                   </span>
                 )}

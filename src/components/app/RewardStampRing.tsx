@@ -1,17 +1,20 @@
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 export function RewardStampRing({
   current,
-  total,
+  total = 10,
   className,
 }: {
   current: number;
-  total: number;
+  total?: number;
   className?: string;
 }) {
+  const { primary } = useLanguage();
   const pct = Math.min(100, (current / total) * 100);
   const circumference = 2 * Math.PI * 44;
   const dash = (pct / 100) * circumference;
+  const complete = current >= total;
 
   return (
     <div className={cn("flex flex-col items-center gap-g3", className)}>
@@ -23,7 +26,7 @@ export function RewardStampRing({
             cy="50"
             r="44"
             fill="none"
-            stroke="hsl(var(--accent-coral))"
+            stroke={complete ? "hsl(var(--brand-green))" : "hsl(var(--accent-coral))"}
             strokeWidth="8"
             strokeLinecap="round"
             strokeDasharray={`${dash} ${circumference}`}
@@ -31,38 +34,12 @@ export function RewardStampRing({
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-          <span className="type-display text-brand-royal leading-none">{current}</span>
-          <span className="type-caption text-muted-foreground">/ {total}</span>
+          <span className="type-display text-brand-royal leading-none tabular-nums">{current}</span>
+          <span className="type-caption text-muted-foreground tabular-nums">/ {total}</span>
         </div>
       </div>
       <p className="type-caption text-center text-muted-foreground px-g4">
-        스탬프 진행 · Stamp progress
-      </p>
-    </div>
-  );
-}
-
-export function MilestoneCard({
-  titleKo,
-  titleEn,
-  unlocked,
-}: {
-  titleKo: string;
-  titleEn: string;
-  unlocked: boolean;
-}) {
-  return (
-    <div
-      className={cn(
-        "rounded-card border p-g4 shadow-elevate-sm",
-        unlocked ? "border-brand-green/40 bg-brand-green/5" : "border-border bg-secondary/50 opacity-70"
-      )}
-    >
-      <p className="type-body font-semibold text-foreground">
-        {titleKo} · {titleEn}
-      </p>
-      <p className="type-caption text-muted-foreground mt-g1">
-        {unlocked ? "해제됨 · Unlocked" : "잠김 · Locked"}
+        {primary("스탬프 진행", "Stamp progress")}
       </p>
     </div>
   );

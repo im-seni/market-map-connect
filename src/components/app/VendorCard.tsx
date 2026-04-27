@@ -1,6 +1,7 @@
 import type { Store } from "@/data/stores";
-import { inferCrowdLevel, getVendorStatus } from "@/data/stores";
+import { inferCrowdLevel, getVendorStatus, waitTimeColorClass } from "@/data/stores";
 import { CrowdChip, VendorStatusChip } from "@/components/app/StatusChip";
+import { useLanguage } from "@/i18n/LanguageContext";
 import { cn } from "@/lib/utils";
 
 const crowdLabels = {
@@ -24,6 +25,7 @@ export function VendorCard({
   onClick?: () => void;
   className?: string;
 }) {
+  const { primary } = useLanguage();
   const crowd = inferCrowdLevel(store);
   const status = getVendorStatus(store);
   const c = crowdLabels[crowd];
@@ -47,29 +49,31 @@ export function VendorCard({
         <div className="min-w-0 flex-1 space-y-g2">
           <div>
             <p className="type-body font-semibold text-foreground truncate">
-              {store.name} · {store.nameEn}
+              {primary(store.name, store.nameEn)}
             </p>
             <p className="type-caption text-muted-foreground">
-              {store.category} · {store.categoryEn}
+              {primary(store.category, store.categoryEn)}
             </p>
           </div>
           <div className="flex flex-wrap gap-g2">
             <CrowdChip kind={crowd} labelKo={c.ko} labelEn={c.en} />
             <VendorStatusChip kind={status} labelKo={v.ko} labelEn={v.en} />
             {store.hasReward && (
-              <span className="rounded-pill bg-brand-yellow/25 px-g3 py-g1 type-caption font-semibold text-brand-navy">
-                스탬프 · Stamp
+              <span className="inline-flex items-center rounded-pill border border-brand-yellow/45 bg-brand-yellow/20 px-g3 py-g1 type-caption font-semibold text-foreground">
+                {primary("스탬프", "Stamp")}
               </span>
             )}
             {store.hasCoupon && (
-              <span className="rounded-pill bg-brand-pink-light/50 px-g3 py-g1 type-caption font-semibold text-brand-navy">
-                쿠폰 · Coupon
+              <span className="inline-flex items-center rounded-pill border border-brand-pink-soft/55 bg-brand-pink-light/40 px-g3 py-g1 type-caption font-semibold text-foreground">
+                {primary("쿠폰", "Coupon")}
               </span>
             )}
           </div>
-          <p className="type-caption text-muted-foreground line-clamp-2">{store.description}</p>
-          <p className="type-caption font-medium text-brand-royal">
-            대기 {store.waitTime}분 · Wait {store.waitTime}m
+          <p className="type-caption text-muted-foreground line-clamp-2">
+            {primary(store.description, store.descriptionEn)}
+          </p>
+          <p className={cn("type-caption font-semibold", waitTimeColorClass(store.waitTime))}>
+            {primary(`대기 ${store.waitTime}분`, `Wait ${store.waitTime}m`)}
           </p>
         </div>
       </div>

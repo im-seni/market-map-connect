@@ -5,7 +5,7 @@ import { FilterChip } from "@/components/app/FilterChip";
 import { CrowdChip, VendorStatusChip } from "@/components/app/StatusChip";
 import { CouponCardUi } from "@/components/app/CouponCardUi";
 import { AnnouncementBanner } from "@/components/app/AnnouncementBanner";
-import { RewardStampRing, MilestoneCard } from "@/components/app/RewardStampRing";
+import { RewardStampRing } from "@/components/app/RewardStampRing";
 import { VendorCard } from "@/components/app/VendorCard";
 import { coupons } from "@/data/coupons";
 import { announcements } from "@/data/announcements";
@@ -60,9 +60,8 @@ export default function ComponentsPage() {
           <VendorCard store={sample} />
         </section>
         <section className="space-y-g3">
-          <h2 className="type-heading">Reward ring + milestone</h2>
-          <RewardStampRing current={2} total={8} />
-          <MilestoneCard titleKo="첫 방문" titleEn="First visit" unlocked />
+          <h2 className="type-heading">Reward ring</h2>
+          <RewardStampRing current={3} total={10} />
         </section>
         <section className="space-y-g3">
           <h2 className="type-heading">Coupon card</h2>

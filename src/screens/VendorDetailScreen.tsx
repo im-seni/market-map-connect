@@ -1,12 +1,13 @@
-import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Clock, CreditCard, Star, Users, Ticket, ScanLine } from "lucide-react";
+import { Clock, CreditCard, Star, Users, Ticket, Stamp as StampIcon, Check } from "lucide-react";
 import { StackHeader } from "@/components/app/StackHeader";
 import { PhoneFrame } from "@/components/app/PhoneFrame";
 import { AppButton } from "@/components/app/AppButton";
 import { FilterChip } from "@/components/app/FilterChip";
 import { CrowdChip, VendorStatusChip } from "@/components/app/StatusChip";
-import { storeById, inferCrowdLevel, getVendorStatus } from "@/data/stores";
+import { storeById, inferCrowdLevel, getVendorStatus, waitTimeColorClass } from "@/data/stores";
+import { useQueue } from "@/contexts/QueueContext";
+import { useRewards } from "@/contexts/RewardsContext";
 import NotFound from "@/pages/NotFound";
 
 const crowdLabels = {
@@ -25,12 +26,16 @@ export default function VendorDetailScreen() {
   const { id } = useParams();
   const navigate = useNavigate();
   const store = id ? storeById(id) : undefined;
-
-  const [isQueued, setIsQueued] = useState(false);
-  const [queueNumber, setQueueNumber] = useState<number | null>(null);
-  const [localQueue, setLocalQueue] = useState(store?.queueCount ?? 0);
+  const { ticketFor, joinQueue, leaveQueue } = useQueue();
+  const { addStamp, hasStampedToday, count, total } = useRewards();
 
   if (!store) return <NotFound />;
+
+  const ticket = ticketFor(store.id);
+  const isQueued = !!ticket;
+  const queueNumber = ticket?.queueNumber ?? null;
+  const peopleAhead = ticket?.peopleAhead ?? store.queueCount;
+  const displayQueueCount = isQueued ? store.queueCount + 1 : store.queueCount;
 
   const crowd = inferCrowdLevel(store);
   const status = getVendorStatus(store);
@@ -38,12 +43,13 @@ export default function VendorDetailScreen() {
   const v = vendorLabels[status];
 
   const handleQueue = () => {
-    if (!isQueued) {
-      const n = localQueue + 1;
-      setQueueNumber(n);
-      setLocalQueue(n);
-      setIsQueued(true);
-    }
+    if (isQueued) return;
+    const n = store.queueCount + 1;
+    joinQueue(store.id, {
+      queueNumber: n,
+      peopleAhead: store.queueCount,
+      etaMinutes: store.waitTime,
+    });
   };
 
   return (
@@ -72,10 +78,10 @@ export default function VendorDetailScreen() {
 
         <div className="grid grid-cols-2 gap-g3">
           <div className="rounded-card border border-border bg-secondary p-g3 flex gap-g2 items-center shadow-elevate-sm">
-            <Clock className="h-5 w-5 text-brand-royal shrink-0" />
+            <Clock className={`h-5 w-5 shrink-0 ${waitTimeColorClass(store.waitTime)}`} />
             <div>
               <p className="type-caption text-muted-foreground">예상 대기 · Est. wait</p>
-              <p className="type-body font-semibold">
+              <p className={`type-body font-semibold tabular-nums ${waitTimeColorClass(store.waitTime)}`}>
                 {store.waitTime}분 · {store.waitTime}m
               </p>
             </div>
@@ -84,7 +90,7 @@ export default function VendorDetailScreen() {
             <Users className="h-5 w-5 text-brand-coral shrink-0" />
             <div>
               <p className="type-caption text-muted-foreground">대기 중 · In line</p>
-              <p className="type-body font-semibold">{localQueue}명 · {localQueue}</p>
+              <p className="type-body font-semibold tabular-nums">{displayQueueCount}명 · {displayQueueCount}</p>
             </div>
           </div>
         </div>
@@ -106,35 +112,47 @@ export default function VendorDetailScreen() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-g3">
-          <AppButton variant="secondary" className="w-full" onClick={() => navigate(`/vendor/${store.id}/menu`)}>
-            메뉴 전체 · Full menu
-          </AppButton>
-          <AppButton
-            variant="tertiary"
-            className="w-full"
-            onClick={() => navigate("/rewards")}
-          >
-            <ScanLine className="h-5 w-5" />
-            스탬프 적립 · Collect stamp
-          </AppButton>
-        </div>
+        {(() => {
+          const stampedToday = hasStampedToday(store.id);
+          return (
+            <div className="grid grid-cols-1 gap-g3">
+              <AppButton variant="secondary" className="w-full" onClick={() => navigate(`/vendor/${store.id}/menu`)}>
+                메뉴 전체 · Full menu
+              </AppButton>
+              <AppButton
+                variant="tertiary"
+                className="w-full"
+                disabled={stampedToday}
+                onClick={() => addStamp(store.id)}
+              >
+                {stampedToday ? <Check className="h-5 w-5" /> : <StampIcon className="h-5 w-5" />}
+                {stampedToday
+                  ? `오늘 적립 완료 · Stamped today (${count}/${total})`
+                  : `방문 체크인 · Check in (+1 stamp)`}
+              </AppButton>
+            </div>
+          );
+        })()}
 
         <div className="rounded-card border border-border bg-card p-g4 shadow-elevate-sm space-y-g3">
           {isQueued ? (
             <>
               <div className="text-center space-y-g2">
                 <Ticket className="h-8 w-8 mx-auto text-brand-royal" />
-                <p className="type-title text-brand-royal">#{queueNumber}</p>
-                <p className="type-caption text-muted-foreground">대기번호 발급 · Queue issued</p>
+                <p className="type-title text-brand-royal tabular-nums">#{queueNumber}</p>
+                <p className="type-caption text-muted-foreground">
+                  {peopleAhead <= 1
+                    ? "곧 차례에요! · You're almost up"
+                    : `${peopleAhead}명 앞 · ${peopleAhead} ahead`}
+                </p>
               </div>
-              <AppButton variant="tertiary" className="w-full" onClick={() => { setIsQueued(false); setQueueNumber(null); setLocalQueue((q) => q - 1); }}>
+              <AppButton variant="tertiary" className="w-full" onClick={() => leaveQueue(store.id)}>
                 대기 취소 · Cancel
               </AppButton>
             </>
           ) : (
             <AppButton variant="primary" className="w-full" onClick={handleQueue}>
-              줄서기 · Join queue ({localQueue}명 대기 · {localQueue} waiting)
+              줄서기 · Join queue ({store.queueCount}명 대기 · {store.queueCount} waiting)
             </AppButton>
           )}
         </div>

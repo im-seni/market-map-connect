@@ -10,7 +10,7 @@
     --brand-royal: 223 64% 37%;
     --brand-navy: 216 73% 25%;
     --text-primary: 200 21% 28%;
-    --accent-coral: 12 88% 65%;
+    --accent-coral: 3 85% 56%;
     --accent-green: 106 48% 56%;
     --accent-blue: 207 76% 37%;
     --accent-aqua: 195 70% 47%;
@@ -49,9 +49,9 @@
     --input: var(--neutral-lightgray);
     --ring: var(--brand-royal);
 
-    /* Figma frame: iPhone 14 */
-    --frame-width: 390px;
-    --frame-min-height: 844px;
+    /* Figma frame: iPhone 14 — fluid so it never overflows narrow phones */
+    --frame-width: min(390px, 100vw);
+    --frame-min-height: 100dvh;
 
     /* Radii (px) */
     --radius-chip: 12px;
@@ -59,6 +59,15 @@
     --radius-sheet: 24px;
     --radius-pill: 999px;
     --radius: 16px;
+
+    /* Standard border weight — single source of truth */
+    --border-width: 1px;
+
+    /* Letter-spacing scale — applied uniformly via .type-* */
+    --tracking-tight: -0.02em;
+    --tracking-snug: -0.01em;
+    --tracking-normal: 0em;
+    --tracking-wide: 0.02em;
 
     /* Low elevation — soft navy tint (night readability) */
     --shadow-sm: 0 1px 2px hsl(var(--brand-navy) / 0.06);
@@ -77,6 +86,52 @@
     --sidebar-accent-foreground: var(--text-primary);
     --sidebar-border: var(--neutral-lightgray);
     --sidebar-ring: var(--brand-royal);
+  }
+
+  .dark {
+    /* Night-friendly palette */
+    --background: 220 35% 8%;
+    --foreground: 0 0% 96%;
+
+    --card: 220 30% 12%;
+    --card-foreground: 0 0% 96%;
+
+    --popover: 220 30% 12%;
+    --popover-foreground: 0 0% 96%;
+
+    /* Lighter, higher-contrast blues for dark mode */
+    --brand-royal: 210 95% 72%;
+    --brand-navy: 215 60% 55%;
+    --accent-blue: 207 90% 70%;
+    --accent-aqua: 192 85% 65%;
+
+    --primary: 210 95% 72%;
+    --primary-foreground: 220 35% 8%;
+
+    --secondary: 220 25% 18%;
+    --secondary-foreground: 0 0% 96%;
+
+    --muted: 220 22% 16%;
+    --muted-foreground: 220 10% 75%;
+
+    --accent-coral: 3 79% 57%;
+    --accent: var(--accent-coral);
+    --accent-foreground: 0 0% 100%;
+
+    --border: 220 20% 26%;
+    --input: 220 20% 26%;
+    --ring: 210 95% 72%;
+
+    /* Use pure black tint so shadows are visible on dark navy bg */
+    --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.5);
+    --shadow-md: 0 4px 16px hsl(0 0% 0% / 0.55), 0 1px 3px hsl(0 0% 0% / 0.45);
+    --shadow-lg: 0 8px 28px hsl(0 0% 0% / 0.65), 0 2px 8px hsl(0 0% 0% / 0.5);
+
+    --sidebar-background: 220 30% 12%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-accent: 220 25% 18%;
+    --sidebar-accent-foreground: 0 0% 96%;
+    --sidebar-border: 220 20% 26%;
   }
 }
 
@@ -100,37 +155,47 @@
     font-family: 'Noto Sans KR', 'Inter', system-ui, sans-serif;
   }
 
-  /* Typography scale — bilingual-safe (KR + Latin) */
+  /* Typography scale — fluid + standardized tracking
+     clamp(min, fluid, max) — scales with viewport width, capped at original sizes
+     Tracking: tighter at large sizes, snug at body, slightly wide on small caps */
   .type-display {
-    font-size: 28px;
-    line-height: 34px;
+    font-size: clamp(22px, 5.6vw, 26px);
+    line-height: 1.22;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: var(--tracking-tight);
   }
 
   .type-title {
-    font-size: 22px;
-    line-height: 28px;
+    font-size: clamp(18px, 4.8vw, 20px);
+    line-height: 1.28;
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--tracking-snug);
   }
 
   .type-heading {
-    font-size: 18px;
-    line-height: 24px;
+    font-size: clamp(15px, 4vw, 17px);
+    line-height: 1.32;
     font-weight: 600;
+    letter-spacing: var(--tracking-snug);
   }
 
   .type-body {
-    font-size: 15px;
-    line-height: 22px;
+    font-size: clamp(13px, 3.6vw, 14px);
+    line-height: 1.5;
     font-weight: 400;
+    letter-spacing: var(--tracking-normal);
   }
 
   .type-caption {
-    font-size: 13px;
-    line-height: 18px;
+    font-size: clamp(11px, 3vw, 12px);
+    line-height: 1.4;
     font-weight: 500;
+    letter-spacing: var(--tracking-normal);
+  }
+
+  /* Eyebrow / uppercase section labels — single rule for tracking */
+  .uppercase {
+    letter-spacing: var(--tracking-wide);
   }
 }
 

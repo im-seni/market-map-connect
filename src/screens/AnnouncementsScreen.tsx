@@ -1,9 +1,11 @@
+import { useMemo } from "react";
 import { StackHeader } from "@/components/app/StackHeader";
 import { PhoneFrame } from "@/components/app/PhoneFrame";
 import { AnnouncementBanner } from "@/components/app/AnnouncementBanner";
-import { announcements } from "@/data/announcements";
+import { sortedAnnouncements } from "@/data/announcements";
 
 export default function AnnouncementsScreen() {
+  const items = useMemo(() => sortedAnnouncements(), []);
   return (
     <PhoneFrame className="min-h-dvh">
       <StackHeader title="공지 · 행사 · Announcements" />
@@ -11,10 +13,11 @@ export default function AnnouncementsScreen() {
         <p className="type-caption text-muted-foreground">
           오늘의 일정 · Closures · 긴급 안내 · Tonight’s program
         </p>
-        {announcements.map((a) => (
+        {items.map((a) => (
           <AnnouncementBanner key={a.id} item={a} />
         ))}
       </div>
     </PhoneFrame>
   );
 }
+

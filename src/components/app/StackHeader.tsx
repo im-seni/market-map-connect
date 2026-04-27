@@ -6,16 +6,16 @@ export function StackHeader({ title }: { title: ReactNode }) {
   const navigate = useNavigate();
 
   return (
-    <header className="flex items-center gap-g3 border-b border-border bg-card/90 px-g4 py-g3 shadow-elevate-sm">
+    <header className="flex items-center gap-g2 border-b border-border bg-card/90 backdrop-blur-md px-g3 py-g3 shadow-elevate-sm min-h-14">
       <button
         type="button"
         onClick={() => navigate(-1)}
-        className="rounded-chip p-g2 text-muted-foreground hover:bg-secondary"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-chip text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
         aria-label="Back"
       >
         <ChevronLeft className="h-5 w-5" />
       </button>
-      <h1 className="type-heading flex-1 truncate">{title}</h1>
+      <h1 className="type-heading flex-1 truncate pr-g2">{title}</h1>
     </header>
   );
 }

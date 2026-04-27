@@ -41,6 +41,17 @@ export function inferCrowdLevel(s: Store): CrowdLevel {
   return "busy";
 }
 
+/**
+ * Map a wait time (minutes) to a semantic Tailwind text-color class.
+ * Short waits → green, medium → yellow, long → coral/red.
+ * Thresholds match `inferCrowdLevel` for visual consistency.
+ */
+export function waitTimeColorClass(minutes: number): string {
+  if (minutes <= 8) return "text-brand-green";
+  if (minutes <= 16) return "text-brand-yellow";
+  return "text-brand-coral";
+}
+
 export function getVendorStatus(s: Store): VendorStatus {
   return s.vendorStatus ?? "open";
 }
