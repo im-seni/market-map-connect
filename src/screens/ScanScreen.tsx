@@ -1,11 +1,16 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AlertCircle, ScanLine, X } from "lucide-react";
+import { Html5Qrcode } from "html5-qrcode";
 import { AppButton } from "@/components/app/AppButton";
+import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useRewards } from "@/contexts/RewardsContext";
 import { parseCheckInVendorId } from "@/lib/checkInQr";
 import { cn } from "@/lib/utils";
+
+/** Stable DOM id — Html5Qrcode requires a string id (one check-in view at a time). */
+const CHECKIN_QR_REGION_ID = "scan-screen-checkin-html5";
 
 export default function ScanScreen() {
   const navigate = useNavigate();
@@ -14,91 +19,107 @@ export default function ScanScreen() {
   const isCheckIn = intent === "checkin";
   const { primary } = useLanguage();
   const { addStamp } = useRewards();
-  const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraError, setCameraError] = useState(false);
+  const [manualText, setManualText] = useState("");
+  const [manualError, setManualError] = useState(false);
+  const html5Ref = useRef<Html5Qrcode | null>(null);
+
+  const completeCheckIn = useCallback(
+    (vendorId: string) => {
+      if (!addStamp(vendorId)) return false;
+      navigate("/rewards", { replace: true });
+      return true;
+    },
+    [addStamp, navigate],
+  );
+
+  const disposeScanner = useCallback(async () => {
+    const scanner = html5Ref.current;
+    html5Ref.current = null;
+    if (!scanner) return;
+    try {
+      if (scanner.isScanning) await scanner.stop();
+      scanner.clear();
+    } catch {
+      try {
+        scanner.clear();
+      } catch {
+        /* noop */
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (!isCheckIn) return;
-    let stream: MediaStream | null = null;
-    let raf = 0;
+
     let cancelled = false;
     setCameraError(false);
 
-    const run = async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" } },
-          audio: false,
-        });
-      } catch {
-        setCameraError(true);
-        return;
-      }
-      if (cancelled) {
-        stream.getTracks().forEach((t) => t.stop());
-        return;
-      }
-      const v = videoRef.current;
-      if (v) {
-        v.srcObject = stream;
-        void v.play();
-      }
+    const scanner = new Html5Qrcode(CHECKIN_QR_REGION_ID, false);
+    html5Ref.current = scanner;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const BarcodeDetector = (window as any).BarcodeDetector as
-        | (new (o: { formats: string[] }) => { detect: (c: HTMLCanvasElement) => Promise<{ rawValue?: string }[]> })
-        | undefined;
-      if (!BarcodeDetector) {
-        return;
-      }
-      const detector = new BarcodeDetector({ formats: ["qr_code"] });
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
+    const qrboxSide = Math.min(
+      220,
+      typeof window !== "undefined"
+        ? Math.floor(Math.min(window.innerWidth - 48, 380))
+        : 220,
+    );
 
-      const tick = async () => {
-        if (cancelled) return;
-        const vid = videoRef.current;
-        if (!vid || vid.readyState < 2) {
-          raf = requestAnimationFrame(() => void tick());
-          return;
-        }
-        const w = vid.videoWidth;
-        const h = vid.videoHeight;
-        if (w < 2 || h < 2) {
-          raf = requestAnimationFrame(() => void tick());
-          return;
-        }
-        canvas.width = w;
-        canvas.height = h;
-        ctx.drawImage(vid, 0, 0, w, h);
-        try {
-          const codes = await detector.detect(canvas);
-          if (codes.length > 0) {
-            const raw = codes[0]?.rawValue ?? "";
-            const id = parseCheckInVendorId(raw);
-            if (id && addStamp(id)) {
-              stream?.getTracks().forEach((t) => t.stop());
-              navigate("/rewards", { replace: true });
-              return;
-            }
-          }
-        } catch {
-          /* single frame */
-        }
-        raf = requestAnimationFrame(() => void tick());
-      };
-      raf = requestAnimationFrame(() => void tick());
+    const config = {
+      fps: 8,
+      qrbox: { width: qrboxSide, height: qrboxSide },
     };
 
-    void run();
+    const onDecode = (decodedText: string) => {
+      if (cancelled) return;
+      const id = parseCheckInVendorId(decodedText);
+      if (id && addStamp(id)) {
+        html5Ref.current = null;
+        void scanner.stop().then(() => {
+          scanner.clear();
+          if (!cancelled) navigate("/rewards", { replace: true });
+        });
+      }
+    };
+
+    const start = async () => {
+      try {
+        await scanner.start(
+          { facingMode: "environment" },
+          config,
+          onDecode,
+          () => {},
+        );
+      } catch {
+        if (cancelled) return;
+        try {
+          await scanner.start(
+            { facingMode: "user" },
+            config,
+            onDecode,
+            () => {},
+          );
+        } catch {
+          if (!cancelled) setCameraError(true);
+        }
+      }
+    };
+
+    void start();
 
     return () => {
       cancelled = true;
-      cancelAnimationFrame(raf);
-      if (stream) stream.getTracks().forEach((t) => t.stop());
+      void disposeScanner();
     };
-  }, [isCheckIn, addStamp, navigate]);
+  }, [isCheckIn, addStamp, navigate, disposeScanner]);
+
+  const submitManual = (e: React.FormEvent) => {
+    e.preventDefault();
+    setManualError(false);
+    const id = parseCheckInVendorId(manualText);
+    if (id && completeCheckIn(id)) return;
+    setManualError(true);
+  };
 
   if (isCheckIn) {
     return (
@@ -117,28 +138,19 @@ export default function ScanScreen() {
           </button>
         </div>
 
-        <div className="flex-1 flex flex-col min-h-0 px-g4 py-g4 gap-g4">
+        <div className="flex-1 flex flex-col min-h-0 px-g4 py-g4 gap-g4 overflow-y-auto">
           <div
             className={cn(
-              "relative w-full max-w-md mx-auto aspect-square overflow-hidden rounded-2xl border-2 border-dashed border-border bg-black/80",
+              "relative w-full max-w-md mx-auto aspect-square overflow-hidden rounded-2xl border-2 border-dashed border-border bg-black",
             )}
           >
-            <video
-              ref={videoRef}
-              className="h-full w-full object-cover"
-              playsInline
-              muted
-              autoPlay
-            />
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <div className="h-48 w-48 rounded-lg border-2 border-white/70" />
-            </div>
+            <div id={CHECKIN_QR_REGION_ID} className="h-full w-full [&_video]:h-full [&_video]:w-full [&_video]:object-cover" />
           </div>
 
           <p className="type-body text-center text-muted-foreground text-pretty max-w-md mx-auto">
             {primary(
-              "QR을 테두리 안에 맞춰주세요",
-              "Align the QR inside the frame.",
+              "QR을 화면 가운데에 맞춰주세요. (iPhone Safari에서도 인식됩니다)",
+              "Point the camera at the QR code. Works on iPhone Safari too.",
             )}
           </p>
 
@@ -146,11 +158,51 @@ export default function ScanScreen() {
             <div className="flex items-start gap-g2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-g3 py-g2 type-caption text-amber-900 dark:text-amber-100">
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
               {primary(
-                "카메라를 켤 수 없어요. 브라우저·기기 설정에서 카메라 권한을 확인해 주세요.",
-                "Can’t access the camera. Allow camera permission in browser or device settings.",
+                "카메라를 켤 수 없어요. 브라우저·기기 설정에서 카메라 권한을 확인하거나, 아래에 코드를 직접 입력해 보세요.",
+                "Can’t access the camera. Check permissions, or enter the check-in code below.",
               )}
             </div>
           )}
+
+          <form
+            onSubmit={submitManual}
+            className="max-w-md mx-auto w-full space-y-g2 rounded-lg border border-border p-g3"
+          >
+            <p className="type-caption text-muted-foreground">
+              {primary(
+                "카메라가 안 될 때: 가맹점 코드를 직접 입력 (예: jemulpo:checkin:demo)",
+                "If the camera fails, type the code (e.g. jemulpo:checkin:demo)",
+              )}
+            </p>
+            <div className="flex gap-g2">
+              <Input
+                value={manualText}
+                onChange={(e) => {
+                  setManualText(e.target.value);
+                  setManualError(false);
+                }}
+                placeholder={primary(
+                  "jemulpo:checkin:…",
+                  "jemulpo:checkin:…",
+                )}
+                className="flex-1 font-mono text-sm"
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
+              />
+              <AppButton type="submit" variant="secondary" className="shrink-0">
+                {primary("적용", "Apply")}
+              </AppButton>
+            </div>
+            {manualError && (
+              <p className="type-caption text-destructive">
+                {primary(
+                  "인식할 수 없는 코드입니다. 가맹점에서 안내한 문자열을 그대로 입력해 주세요.",
+                  "We couldn’t read that code. Enter the exact string your venue shared.",
+                )}
+              </p>
+            )}
+          </form>
         </div>
       </div>
     );
