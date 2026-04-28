@@ -7,13 +7,19 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import {
+  getUserStorageScope,
+  readScopedStorageOrMigrateGuest,
+  scopedStorageKey,
+} from "@/lib/localUserScope";
 
-const STORAGE_KEY = "jemulpo.savedStores.v1";
+const STORAGE_BASE = "jemulpo.savedStores.v1";
 
 function loadIds(): string[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const scope = getUserStorageScope();
+    const raw = readScopedStorageOrMigrateGuest(STORAGE_BASE, scope);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
@@ -36,7 +42,8 @@ export function SavedStoresProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(savedIds));
+      const key = scopedStorageKey(STORAGE_BASE, getUserStorageScope());
+      window.localStorage.setItem(key, JSON.stringify(savedIds));
     } catch {
       /* ignore */
     }

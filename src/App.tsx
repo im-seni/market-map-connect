@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -11,6 +12,10 @@ import { QueueProvider } from "@/contexts/QueueContext";
 import { CouponsProvider } from "@/contexts/CouponsContext";
 import { RewardsProvider } from "@/contexts/RewardsContext";
 import { SavedStoresProvider } from "@/contexts/SavedStoresContext";
+import {
+  UserStorageScopeProvider,
+  useUserStorageScopeValue,
+} from "@/contexts/UserStorageScopeContext";
 import NotFound from "./pages/NotFound.tsx";
 import SplashScreen from "./screens/SplashScreen.tsx";
 import LoginScreen from "./screens/LoginScreen.tsx";
@@ -43,6 +48,18 @@ import PrototypePage from "./pages/ds/03_Prototype.tsx";
 
 const queryClient = new QueryClient();
 
+/** 로그인/게스트 전환 시 스코프가 바뀌면 쿠폰·스탬프 프로바이더를 리마운트해 데이터가 섞이지 않게 함 */
+function ScopedCouponsRewardsSaved({ children }: { children: ReactNode }) {
+  const scope = useUserStorageScopeValue();
+  return (
+    <CouponsProvider key={scope}>
+      <RewardsProvider key={scope}>
+        <SavedStoresProvider>{children}</SavedStoresProvider>
+      </RewardsProvider>
+    </CouponsProvider>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
@@ -51,10 +68,9 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <UserStorageScopeProvider>
           <QueueProvider>
-          <CouponsProvider>
-          <RewardsProvider>
-          <SavedStoresProvider>
+          <ScopedCouponsRewardsSaved>
           <Routes>
             <Route path="/" element={<SplashScreen />} />
             <Route path="/login" element={<LoginScreen />} />
@@ -95,10 +111,9 @@ const App = () => (
 
             <Route path="*" element={<NotFound />} />
           </Routes>
-          </SavedStoresProvider>
-          </RewardsProvider>
-          </CouponsProvider>
+          </ScopedCouponsRewardsSaved>
           </QueueProvider>
+          </UserStorageScopeProvider>
         </BrowserRouter>
       </TooltipProvider>
     </LanguageProvider>

@@ -1,3 +1,5 @@
+import { notifyUserStorageScopeChange } from "@/lib/authScopeEvents";
+
 /**
  * 시연용 로컬 인증 (localStorage). Supabase 연동 전 데모·캡스톤 시연용 — 비밀번호 평문 저장.
  * 고정 시연 계정: capstone@yonsei.ac.kr / 12345678 / 김연세
@@ -82,6 +84,7 @@ export function loginWithEmailPassword(email: string, password: string): DemoUse
 
 export function setDemoSession(user: Pick<DemoUserRecord, "email" | "displayName">): void {
   localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+  notifyUserStorageScopeChange();
 }
 
 export function getDemoSession(): { email: string; displayName: string } | null {
@@ -100,6 +103,7 @@ export function getDemoSession(): { email: string; displayName: string } | null 
 
 export function clearDemoSession(): void {
   localStorage.removeItem(SESSION_KEY);
+  notifyUserStorageScopeChange();
 }
 
 /** 로컬 사용자 목록에서 해당 이메일 계정 제거 (데모용). */

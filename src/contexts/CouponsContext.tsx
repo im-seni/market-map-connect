@@ -1,5 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { coupons as seedCoupons, type Coupon } from "@/data/coupons";
+import {
+  getUserStorageScope,
+  readScopedStorageOrMigrateGuest,
+  scopedStorageKey,
+} from "@/lib/localUserScope";
 
 interface CouponsContextValue {
   coupons: Coupon[];
@@ -7,14 +12,15 @@ interface CouponsContextValue {
   addCoupon: (coupon: Coupon) => void;
 }
 
-const STORAGE_KEY = "jemulpo.coupons.v1";
+const STORAGE_BASE = "jemulpo.coupons.v1";
 
 const CouponsContext = createContext<CouponsContextValue | undefined>(undefined);
 
 function loadCoupons(): Coupon[] {
   if (typeof window === "undefined") return seedCoupons;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const scope = getUserStorageScope();
+    const raw = readScopedStorageOrMigrateGuest(STORAGE_BASE, scope);
     if (!raw) return seedCoupons;
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed) || parsed.length === 0) return seedCoupons;
@@ -29,7 +35,8 @@ export function CouponsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(coupons));
+      const key = scopedStorageKey(STORAGE_BASE, getUserStorageScope());
+      window.localStorage.setItem(key, JSON.stringify(coupons));
     } catch {
       /* ignore */
     }

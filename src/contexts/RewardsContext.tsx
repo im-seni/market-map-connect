@@ -14,6 +14,11 @@ import { storeById } from "@/data/stores";
 import { STAMPS_PER_CARD, expiryFromNow, toLocalIsoDate, type Stamp, type VisitLogEntry } from "@/data/rewards";
 import type { Coupon } from "@/data/coupons";
 import { useCoupons } from "@/contexts/CouponsContext";
+import {
+  getUserStorageScope,
+  readScopedStorageOrMigrateGuest,
+  scopedStorageKey,
+} from "@/lib/localUserScope";
 
 interface RewardsState {
   stamps: Stamp[];
@@ -32,7 +37,7 @@ interface RewardsContextValue {
   addStamp: (vendorId: string) => boolean;
 }
 
-const STORAGE_KEY = "jemulpo.rewards.v1";
+const STORAGE_BASE = "jemulpo.rewards.v1";
 
 const RewardsContext = createContext<RewardsContextValue | undefined>(undefined);
 
@@ -41,7 +46,8 @@ const MAX_VISIT_LOG = 200;
 function loadState(): RewardsState {
   if (typeof window === "undefined") return { stamps: [], claimedCount: 0, visitLog: [] };
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const scope = getUserStorageScope();
+    const raw = readScopedStorageOrMigrateGuest(STORAGE_BASE, scope);
     if (!raw) return { stamps: [], claimedCount: 0, visitLog: [] };
     const parsed = JSON.parse(raw);
     const stamps = Array.isArray(parsed?.stamps) ? parsed.stamps.slice(0, STAMPS_PER_CARD) : [];
@@ -115,7 +121,8 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      const key = scopedStorageKey(STORAGE_BASE, getUserStorageScope());
+      window.localStorage.setItem(key, JSON.stringify(state));
     } catch {
       /* ignore */
     }
