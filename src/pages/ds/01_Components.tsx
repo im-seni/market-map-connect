@@ -65,7 +65,7 @@ export default function ComponentsPage() {
         </section>
         <section className="space-y-g3">
           <h2 className="type-heading">Coupon card</h2>
-          <CouponCardUi coupon={coupon} onUse={() => {}} />
+          <CouponCardUi coupon={coupon} />
         </section>
         <section className="space-y-g3">
           <h2 className="type-heading">Announcement banner</h2>

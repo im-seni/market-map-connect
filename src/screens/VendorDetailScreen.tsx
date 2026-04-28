@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Clock, CreditCard, Star, Users, Ticket, Stamp as StampIcon, Check } from "lucide-react";
+import { Clock, CreditCard, Heart, Star, Users, Ticket, Stamp as StampIcon, Check } from "lucide-react";
 import { StackHeader } from "@/components/app/StackHeader";
 import { PhoneFrame } from "@/components/app/PhoneFrame";
 import { AppButton } from "@/components/app/AppButton";
@@ -8,6 +8,9 @@ import { CrowdChip, VendorStatusChip } from "@/components/app/StatusChip";
 import { storeById, inferCrowdLevel, getVendorStatus, waitTimeColorClass } from "@/data/stores";
 import { useQueue } from "@/contexts/QueueContext";
 import { useRewards } from "@/contexts/RewardsContext";
+import { useSavedStores } from "@/contexts/SavedStoresContext";
+import { useLanguage } from "@/i18n/LanguageContext";
+import { cn } from "@/lib/utils";
 import NotFound from "@/pages/NotFound";
 
 const crowdLabels = {
@@ -25,9 +28,11 @@ const vendorLabels = {
 export default function VendorDetailScreen() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { primary } = useLanguage();
   const store = id ? storeById(id) : undefined;
   const { ticketFor, joinQueue, leaveQueue } = useQueue();
   const { addStamp, hasStampedToday, count, total } = useRewards();
+  const { isSaved, toggleSaved } = useSavedStores();
 
   if (!store) return <NotFound />;
 
@@ -52,9 +57,23 @@ export default function VendorDetailScreen() {
     });
   };
 
+  const saved = isSaved(store.id);
+
   return (
     <PhoneFrame className="min-h-dvh">
-      <StackHeader title={`${store.emoji} ${store.name}`} />
+      <StackHeader
+        title={`${store.emoji} ${store.name}`}
+        right={
+          <button
+            type="button"
+            onClick={() => toggleSaved(store.id)}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition hover:bg-secondary hover:text-brand-coral"
+            aria-label={primary(saved ? "저장 취소" : "상점 저장", saved ? "Remove from saved" : "Save vendor")}
+          >
+            <Heart className={cn("h-5 w-5", saved && "fill-brand-coral text-brand-coral")} strokeWidth={1.75} />
+          </button>
+        }
+      />
       <div className="flex-1 overflow-y-auto px-g4 py-g4 space-y-g5 pb-g8">
         <div className="flex flex-wrap gap-g2">
           <CrowdChip kind={crowd} labelKo={c.ko} labelEn={c.en} />

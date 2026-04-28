@@ -30,6 +30,14 @@ export const coupons: Coupon[] = [
     state: "active",
   },
   {
+    id: "c-yacht-50",
+    titleKo: "미니 요트 50% 할인권",
+    titleEn: "Mini yacht 50% off",
+    vendorId: "15",
+    expiresAt: "2026-08-31",
+    state: "active",
+  },
+  {
     id: "c3",
     titleKo: "타코야끼 세트 10% 할인",
     titleEn: "10% off takoyaki set",

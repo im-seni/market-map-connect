@@ -1,54 +1,117 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { toast } from "sonner";
 import { storeById } from "@/data/stores";
-import {
-  STAMPS_PER_CARD,
-  expiryFromNow,
-  rewardOptionById,
-  toLocalIsoDate,
-  type Stamp,
-} from "@/data/rewards";
+import { STAMPS_PER_CARD, expiryFromNow, toLocalIsoDate, type Stamp, type VisitLogEntry } from "@/data/rewards";
 import type { Coupon } from "@/data/coupons";
 import { useCoupons } from "@/contexts/CouponsContext";
 
 interface RewardsState {
   stamps: Stamp[];
   claimedCount: number;
+  /** 카드가 비워져도 유지 — 방문 기록(스탬프 적립 이력) */
+  visitLog: VisitLogEntry[];
 }
 
 interface RewardsContextValue {
   stamps: Stamp[];
   count: number;
   total: number;
-  canClaim: boolean;
   claimedCount: number;
+  visitLog: VisitLogEntry[];
   hasStampedToday: (vendorId: string) => boolean;
   addStamp: (vendorId: string) => boolean;
-  claim: (rewardOptionId: string) => Coupon | undefined;
 }
 
 const STORAGE_KEY = "jemulpo.rewards.v1";
 
 const RewardsContext = createContext<RewardsContextValue | undefined>(undefined);
 
+const MAX_VISIT_LOG = 200;
+
 function loadState(): RewardsState {
-  if (typeof window === "undefined") return { stamps: [], claimedCount: 0 };
+  if (typeof window === "undefined") return { stamps: [], claimedCount: 0, visitLog: [] };
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { stamps: [], claimedCount: 0 };
+    if (!raw) return { stamps: [], claimedCount: 0, visitLog: [] };
     const parsed = JSON.parse(raw);
+    const stamps = Array.isArray(parsed?.stamps) ? parsed.stamps.slice(0, STAMPS_PER_CARD) : [];
+    const visitLog: VisitLogEntry[] = Array.isArray(parsed?.visitLog)
+      ? parsed.visitLog
+          .filter(
+            (e: unknown): e is VisitLogEntry =>
+              !!e &&
+              typeof e === "object" &&
+              "vendorId" in e &&
+              typeof (e as VisitLogEntry).vendorId === "string" &&
+              "collectedOn" in e &&
+              typeof (e as VisitLogEntry).collectedOn === "string" &&
+              "collectedAt" in e &&
+              typeof (e as VisitLogEntry).collectedAt === "number",
+          )
+          .slice(-MAX_VISIT_LOG)
+      : [];
     return {
-      stamps: Array.isArray(parsed?.stamps) ? parsed.stamps : [],
+      stamps,
       claimedCount: typeof parsed?.claimedCount === "number" ? parsed.claimedCount : 0,
+      visitLog,
     };
   } catch {
-    return { stamps: [], claimedCount: 0 };
+    return { stamps: [], claimedCount: 0, visitLog: [] };
   }
+}
+
+function appendVisitLog(
+  prev: VisitLogEntry[] | undefined,
+  vendorId: string,
+  collectedOn: string,
+  collectedAt: number,
+) {
+  return [...(prev ?? []), { vendorId, collectedOn, collectedAt }].slice(-MAX_VISIT_LOG);
+}
+
+function issueYachtHalfCoupon(): Coupon {
+  return {
+    id: `yacht-50-${Date.now()}`,
+    titleKo: "팔미도 미니 요트 50% 할인",
+    titleEn: "Palmido mini yacht 50% off",
+    /** 다이닝 지도「쿠폰 사용 가능」필터 — `stores` id 15 (팔미도 미니 요트)와 연결 */
+    vendorId: "15",
+    expiresAt: expiryFromNow(30),
+    state: "active",
+  };
 }
 
 export function RewardsProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<RewardsState>(() => loadState());
   const { addCoupon } = useCoupons();
+  const fullCardMigrated = useRef(false);
+
+  /** 로컬에 5/5가 남은 예전 데이터 1회: 쿠폰 지급 후 스탬프 비움(리액트 18 이펙트 2회도 쿠폰 1번) */
+  useLayoutEffect(() => {
+    if (fullCardMigrated.current) return;
+    if (state.stamps.length < STAMPS_PER_CARD) return;
+    fullCardMigrated.current = true;
+    const c = issueYachtHalfCoupon();
+    addCoupon(c);
+    setState((prev) => ({
+      stamps: [],
+      claimedCount: prev.claimedCount + 1,
+      visitLog: prev.visitLog ?? [],
+    }));
+    toast("5개 모두 모았어요! 요트 50% 쿠폰이 쿠폰함에 담겼어요", {
+      description: `${c.titleKo} / ${c.titleEn}`,
+    });
+  }, [state.stamps.length, addCoupon, state.stamps]);
 
   useEffect(() => {
     try {
@@ -79,53 +142,50 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
         });
         return false;
       }
-      // Cap collection at 10 — user must claim before stamping again.
-      if (state.stamps.length >= STAMPS_PER_CARD) {
-        toast("스탬프 카드가 가득 찼어요 · Stamp card is full", {
-          description: "리워드를 먼저 선택해 주세요 · Claim your reward first",
+      if (state.stamps.length > STAMPS_PER_CARD - 1) {
+        toast("스탬프를 먼저 정리해 주세요 · Clear stamp card first", {
+          description: "카드가 가득 찼습니다 · Card is full",
         });
         return false;
       }
+
+      const at = Date.now();
       const stamp: Stamp = {
         vendorId,
         collectedOn: today,
-        collectedAt: Date.now(),
+        collectedAt: at,
       };
       const nextStamps = [...state.stamps, stamp];
-      setState((prev) => ({ ...prev, stamps: nextStamps }));
+
+      if (nextStamps.length >= STAMPS_PER_CARD) {
+        const c = issueYachtHalfCoupon();
+        addCoupon(c);
+        setState((prev) => ({
+          stamps: [],
+          claimedCount: prev.claimedCount + 1,
+          visitLog: appendVisitLog(prev.visitLog, vendorId, today, at),
+        }));
+        const store = storeById(vendorId);
+        toast("5개 모두 모았어요! 요트 50% 쿠폰이 쿠폰함에 담겼어요", {
+          description: store
+            ? `${store.emoji} ${store.name} · ${c.titleKo} / ${c.titleEn}`
+            : `${c.titleKo} / ${c.titleEn}`,
+        });
+        return true;
+      }
+
+      setState((prev) => ({
+        ...prev,
+        stamps: nextStamps,
+        visitLog: appendVisitLog(prev.visitLog, vendorId, today, at),
+      }));
       const store = storeById(vendorId);
       toast(`스탬프 +1 · +1 stamp (${nextStamps.length}/${STAMPS_PER_CARD})`, {
         description: store ? `${store.emoji} ${store.name}` : undefined,
       });
       return true;
     },
-    [state.stamps],
-  );
-
-  const claim = useCallback<RewardsContextValue["claim"]>(
-    (rewardOptionId) => {
-      if (state.stamps.length < STAMPS_PER_CARD) return undefined;
-      const reward = rewardOptionById(rewardOptionId);
-      if (!reward) return undefined;
-      const coupon: Coupon = {
-        id: `reward-${reward.id}-${Date.now()}`,
-        titleKo: reward.titleKo,
-        titleEn: reward.titleEn,
-        vendorId: "",
-        expiresAt: expiryFromNow(reward.validDays),
-        state: "active",
-      };
-      addCoupon(coupon);
-      setState((prev) => ({
-        stamps: [],
-        claimedCount: prev.claimedCount + 1,
-      }));
-      toast(`리워드를 받았어요! · Reward claimed!`, {
-        description: `${reward.titleKo} · ${reward.titleEn}`,
-      });
-      return coupon;
-    },
-    [state.stamps.length, addCoupon],
+    [state.stamps, addCoupon],
   );
 
   const value = useMemo<RewardsContextValue>(
@@ -133,13 +193,12 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
       stamps: state.stamps,
       count: state.stamps.length,
       total: STAMPS_PER_CARD,
-      canClaim: state.stamps.length >= STAMPS_PER_CARD,
       claimedCount: state.claimedCount,
+      visitLog: state.visitLog ?? [],
       hasStampedToday,
       addStamp,
-      claim,
     }),
-    [state, hasStampedToday, addStamp, claim],
+    [state, hasStampedToday, addStamp],
   );
 
   return <RewardsContext.Provider value={value}>{children}</RewardsContext.Provider>;

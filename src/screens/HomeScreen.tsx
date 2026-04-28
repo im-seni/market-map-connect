@@ -105,7 +105,7 @@ export default function HomeScreen() {
                 {primary("더 보기", "See more")}
               </Link>
             </div>
-            <CouponCardUi coupon={featuredCoupon} onUse={() => navigate(`/coupons/${featuredCoupon.id}`)} />
+            <CouponCardUi coupon={featuredCoupon} />
           </section>
         )}
 

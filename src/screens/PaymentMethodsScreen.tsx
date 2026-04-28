@@ -1,41 +1,23 @@
-import { Check } from "lucide-react";
-import { useState } from "react";
 import { StackHeader } from "@/components/app/StackHeader";
 import { PhoneFrame } from "@/components/app/PhoneFrame";
-import { cn } from "@/lib/utils";
-
-const methods = [
-  { id: "card", ko: "신용·체크카드", en: "Card" },
-  { id: "kakao", ko: "카카오페이", en: "KakaoPay" },
-  { id: "naver", ko: "네이버페이", en: "NaverPay" },
-  { id: "toss", ko: "토스페이", en: "TossPay" },
-  { id: "apple", ko: "Apple Pay (선택)", en: "Apple Pay (optional)" },
-  { id: "cash", ko: "현장 현금", en: "Cash on-site" },
-] as const;
+import { useLanguage } from "@/i18n/LanguageContext";
 
 export default function PaymentMethodsScreen() {
-  const [sel, setSel] = useState<string>("card");
+  const { primary } = useLanguage();
 
   return (
     <PhoneFrame className="min-h-dvh">
-      <StackHeader title="결제 수단 · Payment methods" />
-      <div className="flex-1 overflow-y-auto px-g4 py-g4 space-y-g3">
-        {methods.map((m) => (
-          <button
-            key={m.id}
-            type="button"
-            onClick={() => setSel(m.id)}
-            className={cn(
-              "w-full flex items-center justify-between rounded-card border p-g4 shadow-elevate-sm transition",
-              sel === m.id ? "border-brand-royal bg-brand-royal/5" : "border-border bg-card"
-            )}
-          >
-            <span className="type-body font-medium text-left">
-              {m.ko} · {m.en}
-            </span>
-            {sel === m.id && <Check className="h-5 w-5 text-brand-royal" />}
-          </button>
-        ))}
+      <StackHeader title={primary("결제 수단", "Payment methods")} />
+      <div className="flex flex-1 flex-col items-center justify-center px-g6 py-g8 text-center">
+        <p className="type-title text-foreground">
+          {primary("준비 중", "Coming soon")}
+        </p>
+        <p className="type-body text-muted-foreground mt-g3 text-pretty max-w-sm">
+          {primary(
+            "결제 수단 등록 기능을 준비하고 있어요.",
+            "We’re working on saved payment methods.",
+          )}
+        </p>
       </div>
     </PhoneFrame>
   );

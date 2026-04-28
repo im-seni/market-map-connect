@@ -2,6 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { AppButton } from "@/components/app/AppButton";
 import { PhoneFrame } from "@/components/app/PhoneFrame";
 import { ThemeToggle } from "@/components/app/ThemeToggle";
+import { useLanguage } from "@/i18n/LanguageContext";
+import { cn } from "@/lib/utils";
 
 function GoogleGlyph() {
   return (
@@ -30,7 +32,8 @@ function KakaoGlyph() {
 
 export default function LoginScreen() {
   const navigate = useNavigate();
-  const goHome = () => navigate("/home");
+  const { primary } = useLanguage();
+  const goHome = () => navigate("/map");
 
   const socials: { name: string; bg: string; ring?: string; node: JSX.Element }[] = [
     { name: "Kakao", bg: "bg-[#FEE500]", node: <KakaoGlyph /> },
@@ -44,22 +47,27 @@ export default function LoginScreen() {
       <div className="flex flex-1 flex-col justify-center px-g6 space-y-g8">
         <div className="text-center">
           <h1 className="type-display text-foreground text-balance">안녕하세요 · Hello</h1>
-          <p className="type-body text-muted-foreground mt-g3 text-pretty">제물포구 야시장에 오신 것을 환영합니다!</p>
-          <p className="type-body text-muted-foreground text-pretty">Welcome to Jemulpogu Night Market!</p>
+          <p className="type-body text-muted-foreground mt-g3 text-pretty">연안부두 야시장에 오신 것을 환영합니다!</p>
+          <p className="type-body text-muted-foreground text-pretty">Welcome to Yeonan Pier Night Market!</p>
         </div>
         <div className="space-y-g3">
-          <AppButton variant="primary" className="w-full" onClick={goHome}>
-            로그인 · Log In
+          <AppButton
+            className={cn(
+              "w-full min-h-12 bg-brand-royal text-white shadow-elevate-sm hover:brightness-105",
+            )}
+            onClick={() => navigate("/auth/login")}
+          >
+            {primary("로그인 · Log In", "Log In")}
           </AppButton>
-          <AppButton variant="secondary" className="w-full" onClick={goHome}>
-            가입하기 · Sign Up
+          <AppButton variant="secondary" className="w-full" onClick={() => navigate("/auth/sign-up")}>
+            {primary("가입하기 · Sign Up", "Sign Up")}
           </AppButton>
           <button
             type="button"
             onClick={goHome}
-            className="w-full type-body font-medium text-muted-foreground underline-offset-4 hover:underline"
+            className="w-full type-body font-semibold text-brand-royal underline-offset-4 hover:underline"
           >
-            게스트로 계속 · Continue as Guest
+            {primary("게스트로 계속 · Continue as Guest", "Continue as Guest")}
           </button>
         </div>
       </div>

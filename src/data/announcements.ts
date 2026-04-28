@@ -20,21 +20,8 @@ export interface Announcement {
 
 export const announcements: Announcement[] = [
   {
-    id: "a1",
-    titleKo: "오늘 밤 특별 공연",
-    titleEn: "Tonight’s special stage",
-    bodyKo: "메인 스테이지에서 20:00 라이브 밴드 공연이 있습니다.",
-    bodyEn: "Live band at the main stage at 8:00 PM.",
-    dateLabelKo: "4월 29일",
-    dateLabelEn: "Apr 29",
-    timeRangeKo: "20:00–21:30",
-    timeRangeEn: "8:00–9:30 PM",
-    urgency: "info",
-    ctaHref: "/map",
-  },
-  {
     id: "a2",
-    titleKo: "일부 구역 임시 통제",
+    titleKo: "일부구역 임시 통제",
     titleEn: "Temporary zone closure",
     bodyKo: "불꽃 준비 구역 인근은 안전을 위해 19:30부터 통제됩니다.",
     bodyEn: "Area near the fireworks prep zone closes from 7:30 PM for safety.",
@@ -43,7 +30,6 @@ export const announcements: Announcement[] = [
     timeRangeKo: "19:30–22:00",
     timeRangeEn: "7:30–10:00 PM",
     urgency: "urgent",
-    ctaHref: "/map",
   },
   {
     id: "a3",

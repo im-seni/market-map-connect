@@ -19,8 +19,8 @@ export default function SplashScreen() {
           </div>
         </div>
         <img src={logoWordmark} alt="Jemulpogu Night Market" className="h-[clamp(36px,9vw,52px)] w-auto max-w-[320px] brightness-0 invert opacity-95" />
-        <p className="type-body text-white/90 max-w-[280px]">
-          밤바다와 야시장 · Harbor night market
+        <p className="type-body text-white/90 max-w-[320px] font-medium tracking-tight">
+          Yeonan Night Pier Market
         </p>
         <span className="type-caption text-white/70 rounded-pill border border-white/30 px-g4 py-g2">
           탭하여 시작 · Tap to start

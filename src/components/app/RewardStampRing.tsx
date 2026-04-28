@@ -3,7 +3,7 @@ import { useLanguage } from "@/i18n/LanguageContext";
 
 export function RewardStampRing({
   current,
-  total = 10,
+  total = 5,
   className,
 }: {
   current: number;

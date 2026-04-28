@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
-import { Bell, Globe, Search } from "lucide-react";
+import { Bell, Globe } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useQueue } from "@/contexts/QueueContext";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { cn } from "@/lib/utils";
 
@@ -14,31 +16,38 @@ export function TopUtilityBar({
   searchSlot?: ReactNode;
   className?: string;
 }) {
-  const { locale, setLocale } = useLanguage();
+  const navigate = useNavigate();
+  const { locale, setLocale, primary } = useLanguage();
+  const { queueBellDot, acknowledgeQueueBell } = useQueue();
 
   const toggleLang = () => setLocale(locale === "ko" ? "en" : "ko");
 
   return (
     <div
       className={cn(
-        "px-g4 pt-g3 pb-g3 space-y-g3 bg-card/90 backdrop-blur-md border-b border-border shadow-elevate-sm",
+        "relative overflow-visible px-g4 pt-g3 pb-g3 space-y-g3 bg-card/90 backdrop-blur-md border-b border-border shadow-elevate-sm",
         className,
       )}
     >
       <div className="flex items-center justify-between gap-g2 min-h-9">
         {showLogo ? (
-          <div className="flex items-center">
+          <button
+            type="button"
+            onClick={() => navigate("/map")}
+            className="flex items-center rounded-md p-0.5 -m-0.5 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-royal/40"
+            aria-label={primary("지도·다이닝으로 이동", "Go to map and dining")}
+          >
             <img
               src="/logo/jemulpogu.png"
-              alt="Jemulpo Night Market"
+              alt=""
               className="h-8 w-auto block dark:hidden"
             />
             <img
               src="/logo/jemulpogu-dark.png"
-              alt="Jemulpo Night Market"
+              alt=""
               className="h-8 w-auto hidden dark:block"
             />
-          </div>
+          </button>
         ) : (
           <span aria-hidden className="h-8" />
         )}
@@ -54,20 +63,18 @@ export function TopUtilityBar({
           </button>
           <button
             type="button"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-chip text-foreground hover:bg-secondary"
-            aria-label="Notifications"
+            className="relative inline-flex h-9 w-9 items-center justify-center rounded-chip text-foreground hover:bg-secondary"
+            aria-label={primary("알림", "Notifications")}
+            onClick={() => {
+              acknowledgeQueueBell();
+              navigate("/queue-alerts");
+            }}
           >
             <Bell className="h-5 w-5" />
+            {queueBellDot ? (
+              <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500 ring-2 ring-card" />
+            ) : null}
           </button>
-          {!showSearchSlot && (
-            <button
-              type="button"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-chip text-foreground hover:bg-secondary"
-              aria-label="Search"
-            >
-              <Search className="h-5 w-5" />
-            </button>
-          )}
         </div>
       </div>
       {showSearchSlot && searchSlot}

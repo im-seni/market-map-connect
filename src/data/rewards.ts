@@ -1,9 +1,9 @@
 /**
- * Rewards system: collect 10 stamps (1 per vendor visit, max 1 per vendor per day),
- * then choose 1 of 3 reward coupons. Stamps reset on claim.
+ * Rewards: 5 QR 체크인 스탬프 → 쿠폰함에 요트 50% 쿠폰 자동 지급, 스탬프 리셋
+ * (같은 가맹점·같은 날 1회)
  */
 
-export const STAMPS_PER_CARD = 10;
+export const STAMPS_PER_CARD = 5;
 
 export interface RewardOption {
   id: string;
@@ -18,6 +18,13 @@ export interface Stamp {
   /** ISO date (YYYY-MM-DD) — used for the same-day-same-vendor lockout. */
   collectedOn: string;
   /** Epoch ms — preserves chronological ordering inside a single day. */
+  collectedAt: number;
+}
+
+/** 방문 기록용 — 카드 초기화 후에도 유지 */
+export interface VisitLogEntry {
+  vendorId: string;
+  collectedOn: string;
   collectedAt: number;
 }
 
