@@ -12,8 +12,9 @@ const crowdLabels = {
 
 const vendorLabels = {
   open: { ko: "영업 중", en: "Open" },
+  pre_open: { ko: "영업 전", en: "Before opening" },
+  closed: { ko: "영업 마감", en: "Closed" },
   sold_out: { ko: "품절", en: "Sold Out" },
-  closing_soon: { ko: "마감 임박", en: "Closing Soon" },
 } as const;
 
 export function VendorCard({

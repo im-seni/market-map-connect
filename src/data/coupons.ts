@@ -70,18 +70,36 @@ export function daysUntil(isoDate: string, now: Date = new Date()): number {
 export type Locale = "ko" | "en";
 
 /**
- * Formats meta line.
- * KO: "D-64  ·  2026-06-30 까지"
- * EN: "D-64  ·  Until 2026-06-30"
- * Edge cases: D-day, expired/Expired.
+ * Formats meta line for list / detail.
+ * KO active: "D-64  ·  2026-06-30 까지"
+ * KO used (past expiry): "만료  ·  2026-03-01 까지" — 카드 하단에 "사용 완료" 병행
+ * KO expired: "만료  ·  YYYY-MM-DD 까지"
  */
 export function formatCouponMeta(
   expiresAt: string,
   locale: Locale = "ko",
   now: Date = new Date(),
+  state?: CouponState,
 ): string {
   if (!expiresAt) return "";
   const d = daysUntil(expiresAt, now);
+
+  if (state === "expired") {
+    return locale === "en"
+      ? `Expired  ·  Until ${expiresAt}`
+      : `만료  ·  ${expiresAt} 까지`;
+  }
+
+  if (state === "used") {
+    if (locale === "en") {
+      if (d > 0) return `D-${d}  ·  Until ${expiresAt}`;
+      if (d === 0) return `D-day  ·  Until ${expiresAt}`;
+      return `Expired  ·  Until ${expiresAt}`;
+    }
+    if (d > 0) return `D-${d}  ·  ${expiresAt} 까지`;
+    if (d === 0) return `D-day  ·  ${expiresAt} 까지`;
+    return `만료  ·  ${expiresAt} 까지`;
+  }
 
   if (locale === "en") {
     let dLabel: string;

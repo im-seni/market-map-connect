@@ -2,7 +2,7 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { cn } from "@/lib/utils";
 
 type Crowd = "low" | "moderate" | "busy";
-type Vendor = "open" | "sold_out" | "closing_soon";
+type Vendor = "open" | "pre_open" | "closed" | "sold_out";
 
 /* All chips: same text color (foreground), 1px border, tinted background only.
    This keeps a single visual language across the entire app. */
@@ -14,8 +14,9 @@ const crowdStyle: Record<Crowd, string> = {
 
 const vendorStyle: Record<Vendor, string> = {
   open: "bg-brand-aqua/15 border-brand-aqua/45",
-  sold_out: "bg-muted border-border",
-  closing_soon: "bg-brand-pink-light/40 border-brand-pink-soft/55",
+  pre_open: "bg-brand-yellow/18 border-brand-yellow/45",
+  closed: "bg-muted border-border",
+  sold_out: "bg-brand-coral/12 border-brand-coral/35",
 };
 
 const baseChip =

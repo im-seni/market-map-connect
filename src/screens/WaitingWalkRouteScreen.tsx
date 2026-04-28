@@ -62,10 +62,10 @@ export default function WaitingWalkRouteScreen() {
       const path = stops.map((s) => new kakao.maps.LatLng(s.lat, s.lng));
       const polyline = new kakao.maps.Polyline({
         path,
-        strokeWeight: 4,
-        strokeColor: "#1d4ed8",
-        strokeOpacity: 0.88,
-        strokeStyle: "dash",
+        strokeWeight: 6,
+        strokeColor: "#2563eb",
+        strokeOpacity: 0.95,
+        strokeStyle: "solid",
       });
       polyline.setMap(map);
       polylineRef.current = polyline;
@@ -78,7 +78,7 @@ export default function WaitingWalkRouteScreen() {
         const el = document.createElement("div");
         el.textContent = String(s.order);
         el.style.cssText =
-          "display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9999px;background:#1d4ed8;color:#fff;font-size:13px;font-weight:800;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.15);";
+          "display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9999px;background:#2563eb;color:#fff;font-size:13px;font-weight:800;border:2px solid #fff;box-shadow:0 3px 10px rgba(37,99,235,0.35);";
         const ov = new kakao.maps.CustomOverlay({
           position: new kakao.maps.LatLng(s.lat, s.lng),
           content: el,

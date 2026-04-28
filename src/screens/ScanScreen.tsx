@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { AlertCircle, ScanLine, X } from "lucide-react";
+import { ScanLine, X } from "lucide-react";
 import { Html5Qrcode } from "html5-qrcode";
 import { AppButton } from "@/components/app/AppButton";
-import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useRewards } from "@/contexts/RewardsContext";
 import { parseCheckInVendorId } from "@/lib/checkInQr";
@@ -20,13 +19,11 @@ export default function ScanScreen() {
   const { primary } = useLanguage();
   const { addStamp } = useRewards();
   const [cameraError, setCameraError] = useState(false);
-  const [manualText, setManualText] = useState("");
-  const [manualError, setManualError] = useState(false);
   const html5Ref = useRef<Html5Qrcode | null>(null);
 
   const completeCheckIn = useCallback(
-    (vendorId: string) => {
-      if (!addStamp(vendorId)) return false;
+    async (vendorId: string) => {
+      if (!(await addStamp(vendorId))) return false;
       navigate("/rewards", { replace: true });
       return true;
     },
@@ -70,10 +67,10 @@ export default function ScanScreen() {
       qrbox: { width: qrboxSide, height: qrboxSide },
     };
 
-    const onDecode = (decodedText: string) => {
+    const onDecode = async (decodedText: string) => {
       if (cancelled) return;
       const id = parseCheckInVendorId(decodedText);
-      if (id && addStamp(id)) {
+      if (id && (await addStamp(id))) {
         html5Ref.current = null;
         void scanner.stop().then(() => {
           scanner.clear();
@@ -113,13 +110,6 @@ export default function ScanScreen() {
     };
   }, [isCheckIn, addStamp, navigate, disposeScanner]);
 
-  const submitManual = (e: React.FormEvent) => {
-    e.preventDefault();
-    setManualError(false);
-    const id = parseCheckInVendorId(manualText);
-    if (id && completeCheckIn(id)) return;
-    setManualError(true);
-  };
 
   if (isCheckIn) {
     return (
@@ -149,60 +139,19 @@ export default function ScanScreen() {
 
           <p className="type-body text-center text-muted-foreground text-pretty max-w-md mx-auto">
             {primary(
-              "QR을 화면 가운데에 맞춰주세요. (iPhone Safari에서도 인식됩니다)",
-              "Point the camera at the QR code. Works on iPhone Safari too.",
+              "QR을 화면 가운데에 맞춰주세요.",
+              "Point the camera at the QR code.",
             )}
           </p>
 
           {cameraError && (
-            <div className="flex items-start gap-g2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-g3 py-g2 type-caption text-amber-900 dark:text-amber-100">
-              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+            <p className="type-caption text-center text-destructive">
               {primary(
-                "카메라를 켤 수 없어요. 브라우저·기기 설정에서 카메라 권한을 확인하거나, 아래에 코드를 직접 입력해 보세요.",
-                "Can’t access the camera. Check permissions, or enter the check-in code below.",
-              )}
-            </div>
-          )}
-
-          <form
-            onSubmit={submitManual}
-            className="max-w-md mx-auto w-full space-y-g2 rounded-lg border border-border p-g3"
-          >
-            <p className="type-caption text-muted-foreground">
-              {primary(
-                "카메라가 안 될 때: 가맹점 코드를 직접 입력 (예: jemulpo:checkin:demo)",
-                "If the camera fails, type the code (e.g. jemulpo:checkin:demo)",
+                "카메라를 켤 수 없어요. 브라우저·기기 설정에서 카메라 권한을 확인해 주세요.",
+                "Can’t access the camera. Please check your browser or device camera permissions.",
               )}
             </p>
-            <div className="flex gap-g2">
-              <Input
-                value={manualText}
-                onChange={(e) => {
-                  setManualText(e.target.value);
-                  setManualError(false);
-                }}
-                placeholder={primary(
-                  "jemulpo:checkin:…",
-                  "jemulpo:checkin:…",
-                )}
-                className="flex-1 font-mono text-sm"
-                autoCapitalize="off"
-                autoCorrect="off"
-                spellCheck={false}
-              />
-              <AppButton type="submit" variant="secondary" className="shrink-0">
-                {primary("적용", "Apply")}
-              </AppButton>
-            </div>
-            {manualError && (
-              <p className="type-caption text-destructive">
-                {primary(
-                  "인식할 수 없는 코드입니다. 가맹점에서 안내한 문자열을 그대로 입력해 주세요.",
-                  "We couldn’t read that code. Enter the exact string your venue shared.",
-                )}
-              </p>
-            )}
-          </form>
+          )}
         </div>
       </div>
     );

@@ -4,7 +4,7 @@ import { StackHeader } from "@/components/app/StackHeader";
 import { AppButton } from "@/components/app/AppButton";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { registerUser } from "@/lib/demoAuthStorage";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { isValidEmailFormat } from "@/lib/emailValidation";
 import { cn } from "@/lib/utils";
 
@@ -13,16 +13,16 @@ const inputErrorRing = "border-2 border-destructive focus-visible:ring-destructi
 export default function AuthSignUpScreen() {
   const navigate = useNavigate();
   const { primary } = useLanguage();
+  const { signUp } = useSupabaseAuth();
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [marketing, setMarketing] = useState(false);
-  /** 제출 시도 이후 실시간으로 빨간 테두리 갱신 */
   const [triedSubmit, setTriedSubmit] = useState(false);
-  /** 가입 시 이미 등록된 이메일 */
   const [emailTaken, setEmailTaken] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const nameError = useMemo(
     () => triedSubmit && !displayName.trim(),
@@ -103,7 +103,7 @@ export default function AuthSignUpScreen() {
     return primary("닉네임을 입력해 주세요.", "Enter your display name.");
   }, [triedSubmit, displayName, primary]);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setTriedSubmit(true);
     setEmailTaken(false);
@@ -115,17 +115,15 @@ export default function AuthSignUpScreen() {
     if (password !== confirm) return;
     if (!agreeTerms) return;
 
-    const result = registerUser({
-      email: email.trim(),
-      password,
-      displayName: displayName.trim(),
-      marketingOptIn: marketing,
+    setSubmitting(true);
+    const { error, taken } = await signUp(email.trim(), password, {
+      display_name: displayName.trim(),
+      marketing_opt_in: marketing,
     });
-    if (!result.ok) {
-      const failed = result as Extract<typeof result, { ok: false }>;
-      if (failed.reason === "exists") setEmailTaken(true);
-      return;
-    }
+    setSubmitting(false);
+
+    if (taken || error?.toLowerCase().includes("already")) { setEmailTaken(true); return; }
+    if (error) return;
     navigate("/auth/login");
   };
 
@@ -280,12 +278,13 @@ export default function AuthSignUpScreen() {
 
         <AppButton
           type="submit"
+          disabled={submitting}
           className={cn(
             "w-full min-h-12 bg-brand-royal text-white shadow-elevate-sm hover:brightness-105",
             "border-0",
           )}
         >
-          {primary("가입하기", "Create account")}
+          {submitting ? primary("가입 중…", "Creating account…") : primary("가입하기", "Create account")}
         </AppButton>
         <p className="type-caption text-center text-muted-foreground">
           {primary("이미 계정이 있으신가요? ", "Already have an account? ")}

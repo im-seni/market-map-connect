@@ -1,14 +1,16 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Camera, Gift, QrCode } from "lucide-react";
 import { TopUtilityBar } from "@/components/app/TopUtilityBar";
 import { CouponCardUi } from "@/components/app/CouponCardUi";
 import { AppButton } from "@/components/app/AppButton";
 import { RewardStampRing } from "@/components/app/RewardStampRing";
+import { Skeleton } from "@/components/ui/skeleton";
 import { type CouponState } from "@/data/coupons";
 import { STAMPS_PER_CARD } from "@/data/rewards";
 import { useCoupons } from "@/contexts/CouponsContext";
 import { useRewards } from "@/contexts/RewardsContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { storeById } from "@/data/stores";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { cn } from "@/lib/utils";
@@ -24,10 +26,15 @@ const couponSubTabs: { id: CouponState; ko: string; en: string }[] = [
 export default function CouponsScreen() {
   const navigate = useNavigate();
   const { primary } = useLanguage();
-  const { coupons } = useCoupons();
+  const { user } = useSupabaseAuth();
+  const { coupons, couponsLoading, couponsError, refreshCoupons } = useCoupons();
   const { stamps, count, total, claimedCount } = useRewards();
   const [topTab, setTopTab] = useState<TopTab>("stamps");
   const [subTab, setSubTab] = useState<CouponState>("active");
+
+  useEffect(() => {
+    if (topTab === "coupons") void refreshCoupons();
+  }, [topTab, refreshCoupons]);
 
   const list = useMemo(() => coupons.filter((c) => c.state === subTab), [coupons, subTab]);
   const slots = Array.from({ length: STAMPS_PER_CARD }, (_, i) => stamps[i]);
@@ -79,7 +86,33 @@ export default function CouponsScreen() {
             ))}
           </div>
           <div className="flex-1 overflow-y-auto px-g4 py-g4 space-y-g3">
-            {list.length === 0 ? (
+            {!user ? (
+              <div className="flex flex-col items-center justify-center text-center py-g8 gap-g2">
+                <Gift className="h-8 w-8 text-muted-foreground/50" />
+                <p className="type-body text-muted-foreground">
+                  {primary("로그인하면 쿠폰을 확인할 수 있어요", "Sign in to see your coupons")}
+                </p>
+                <AppButton variant="primary" className="mt-g2" onClick={() => navigate("/auth/login")}>
+                  {primary("로그인", "Sign in")}
+                </AppButton>
+              </div>
+            ) : couponsError ? (
+              <div className="rounded-card border border-destructive/30 bg-destructive/5 p-g4 space-y-g3">
+                <p className="type-caption text-destructive">{couponsError}</p>
+                <AppButton variant="secondary" className="w-full" onClick={() => void refreshCoupons()}>
+                  {primary("다시 불러오기", "Retry")}
+                </AppButton>
+              </div>
+            ) : couponsLoading && coupons.length === 0 ? (
+              <div className="space-y-g3">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="rounded-card border border-border bg-card p-g4 space-y-g2">
+                    <Skeleton className="h-5 w-[min(90%,280px)]" />
+                    <Skeleton className="h-4 w-[min(70%,200px)]" />
+                  </div>
+                ))}
+              </div>
+            ) : list.length === 0 ? (
               <div className="flex flex-col items-center justify-center text-center py-g8 gap-g2">
                 <Gift className="h-8 w-8 text-muted-foreground/50" />
                 <p className="type-body text-muted-foreground">
@@ -126,27 +159,32 @@ export default function CouponsScreen() {
             })}
           </div>
 
-          <AppButton
-            variant="primary"
-            className="w-full"
-            onClick={() => navigate("/scan?intent=checkin")}
-          >
-            <Camera className="h-5 w-5" />
-            {primary("스탬프 적립", "Earn a stamp")}
-          </AppButton>
-          <p className="type-caption text-center text-muted-foreground -mt-2">
-            {primary(
-              "카메라 권한이 필요해요. 가맹점에 비치된 QR을 화면에 맞춰 주세요.",
-              "Camera access is required. Point at the vendor’s check-in QR code.",
-            )}
-          </p>
-          <p className="type-caption text-center text-muted-foreground/90 text-pretty max-w-sm mx-auto">
-            {primary(
-              "시연: QR 제작기(예: qr.io)에 jemulpo:checkin:demo 를 그대로 넣어 만든 코드를 출력해 두면 적립 테스트가 가능합니다.",
-              "Demo: encode jemulpo:checkin:demo in any QR generator, print or show on a second screen, then scan it.",
-            )}
-          </p>
-
+          {user ? (
+            <>
+              <AppButton
+                variant="primary"
+                className="w-full"
+                onClick={() => navigate("/scan?intent=checkin")}
+              >
+                <Camera className="h-5 w-5" />
+                {primary("스탬프 적립", "Earn a stamp")}
+              </AppButton>
+              <p className="type-caption text-center text-muted-foreground -mt-2">
+                {primary(
+                  "카메라 권한이 필요해요. 가맹점에 비치된 QR을 화면에 맞춰 주세요.",
+                  "Camera access is required. Point at the vendor’s check-in QR code.",
+                )}
+              </p>
+            </>
+          ) : (
+            <AppButton
+              variant="primary"
+              className="w-full"
+              onClick={() => navigate("/auth/login")}
+            >
+              {primary("로그인하고 스탬프 적립하기", "Sign in to earn stamps")}
+            </AppButton>
+          )}
           {claimedCount > 0 && (
             <div className="rounded-card border border-border bg-secondary/40 p-g3 flex items-center gap-g2">
               <QrCode className="h-4 w-4 text-brand-royal shrink-0" />

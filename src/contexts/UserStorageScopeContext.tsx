@@ -1,22 +1,12 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
-import { JEMULPO_AUTH_CHANGE } from "@/lib/authScopeEvents";
-import { getUserStorageScope } from "@/lib/localUserScope";
+import { createContext, useContext, type ReactNode } from "react";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 
 const UserStorageScopeContext = createContext<string | null>(null);
 
 export function UserStorageScopeProvider({ children }: { children: ReactNode }) {
-  const [scope, setScope] = useState(getUserStorageScope);
-  useEffect(() => {
-    const onChange = () => setScope(getUserStorageScope());
-    window.addEventListener(JEMULPO_AUTH_CHANGE, onChange);
-    return () => window.removeEventListener(JEMULPO_AUTH_CHANGE, onChange);
-  }, []);
+  const { user, loading, sessionKey } = useSupabaseAuth();
+  // sessionKey가 바뀌면 로그아웃 → providers 강제 re-mount → 이전 상태 초기화
+  const scope = loading ? "loading" : `${user?.id ?? "no-user"}-${sessionKey}`;
   return (
     <UserStorageScopeContext.Provider value={scope}>
       {children}
@@ -27,9 +17,7 @@ export function UserStorageScopeProvider({ children }: { children: ReactNode }) 
 export function useUserStorageScopeValue() {
   const v = useContext(UserStorageScopeContext);
   if (v == null) {
-    throw new Error(
-      "useUserStorageScopeValue must be used within UserStorageScopeProvider",
-    );
+    throw new Error("useUserStorageScopeValue must be used within UserStorageScopeProvider");
   }
   return v;
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import type { Coupon } from "@/data/coupons";
 import { formatCouponMeta } from "@/data/coupons";
@@ -13,13 +14,16 @@ function redeemQrPayload(coupon: Coupon) {
 export function CouponCardUi({
   coupon,
   className,
+  /** false면 카드 본문을 상세 라우트로 연결하지 않음(디자인 시스템 등). */
+  linkToDetail = true,
 }: {
   coupon: Coupon;
   className?: string;
+  linkToDetail?: boolean;
 }) {
   const { locale, primary } = useLanguage();
   const isActive = coupon.state === "active";
-  const meta = formatCouponMeta(coupon.expiresAt, locale);
+  const meta = formatCouponMeta(coupon.expiresAt, locale, new Date(), coupon.state);
   const [qrOpen, setQrOpen] = useState(false);
 
   const showQr = isActive;
@@ -35,14 +39,28 @@ export function CouponCardUi({
         )}
       >
         <div className="flex items-start gap-g3">
-          <div className="space-y-g1 min-w-0 flex-1">
-            <p className="type-body font-semibold text-foreground text-balance">
-              {primary(coupon.titleKo, coupon.titleEn)}
-            </p>
-            {meta && (
-              <p className="type-caption text-muted-foreground tabular-nums">{meta}</p>
-            )}
-          </div>
+          {linkToDetail ? (
+            <Link
+              to={`/coupons/${coupon.id}`}
+              className="min-w-0 flex-1 space-y-g1 text-left text-inherit no-underline rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-brand-royal/40"
+            >
+              <p className="type-body font-semibold text-foreground text-balance">
+                {primary(coupon.titleKo, coupon.titleEn)}
+              </p>
+              {meta && (
+                <p className="type-caption text-muted-foreground tabular-nums">{meta}</p>
+              )}
+            </Link>
+          ) : (
+            <div className="space-y-g1 min-w-0 flex-1">
+              <p className="type-body font-semibold text-foreground text-balance">
+                {primary(coupon.titleKo, coupon.titleEn)}
+              </p>
+              {meta && (
+                <p className="type-caption text-muted-foreground tabular-nums">{meta}</p>
+              )}
+            </div>
+          )}
           {showQr && (
             <button
               type="button"

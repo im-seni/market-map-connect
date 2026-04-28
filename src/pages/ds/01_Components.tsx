@@ -43,8 +43,8 @@ export default function ComponentsPage() {
             <CrowdChip kind="moderate" labelKo="보통" labelEn="Moderate" />
             <CrowdChip kind="busy" labelKo="혼잡" labelEn="Busy" />
             <VendorStatusChip kind="open" labelKo="영업 중" labelEn="Open" />
-            <VendorStatusChip kind="sold_out" labelKo="품절" labelEn="Sold Out" />
-            <VendorStatusChip kind="closing_soon" labelKo="마감 임박" labelEn="Closing Soon" />
+            <VendorStatusChip kind="pre_open" labelKo="영업 전" labelEn="Before opening" />
+            <VendorStatusChip kind="closed" labelKo="영업 마감" labelEn="Closed" />
           </div>
         </section>
         <section className="space-y-g3">
@@ -65,7 +65,7 @@ export default function ComponentsPage() {
         </section>
         <section className="space-y-g3">
           <h2 className="type-heading">Coupon card</h2>
-          <CouponCardUi coupon={coupon} />
+          <CouponCardUi coupon={coupon} linkToDetail={false} />
         </section>
         <section className="space-y-g3">
           <h2 className="type-heading">Announcement banner</h2>

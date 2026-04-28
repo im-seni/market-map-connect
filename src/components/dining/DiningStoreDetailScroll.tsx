@@ -32,6 +32,7 @@ export type DiningStoreDetailScrollProps = {
   queueFooterInline: boolean;
   onQueueJoin: () => void;
   onQueueLeave: () => void;
+  isGuest?: boolean;
   /** 저장(하트) — 미전달 시 버튼 숨김 */
   saved?: boolean;
   onToggleSaved?: () => void;
@@ -42,11 +43,13 @@ function QueueReserveFooter({
   primary,
   onQueueJoin,
   onQueueLeave,
+  isGuest,
 }: {
   ticket?: QueueTicket;
   primary: (ko: string, en: string) => string;
   onQueueJoin: () => void;
   onQueueLeave: () => void;
+  isGuest?: boolean;
 }) {
   return (
     <div className="border-t border-border bg-card px-g4 py-g3 pb-[max(12px,env(safe-area-inset-bottom))] shadow-[0_-6px_20px_rgba(0,0,0,0.06)]">
@@ -60,6 +63,10 @@ function QueueReserveFooter({
             {primary("대기 취소 · Cancel", "Cancel reservation")}
           </button>
         </div>
+      ) : isGuest ? (
+        <p className="type-caption text-center text-muted-foreground py-g2">
+          로그인 후 줄서기 기능을 이용해보세요
+        </p>
       ) : (
         <AppButton variant="primary" onClick={onQueueJoin} className="w-full">
           {primary("예약하기", "Reserve")}
@@ -94,6 +101,7 @@ export function DiningStoreDetailScroll({
   queueFooterInline,
   onQueueJoin,
   onQueueLeave,
+  isGuest,
   saved,
   onToggleSaved,
 }: DiningStoreDetailScrollProps) {
@@ -324,6 +332,7 @@ export function DiningStoreDetailScroll({
           primary={primary}
           onQueueJoin={onQueueJoin}
           onQueueLeave={onQueueLeave}
+          isGuest={isGuest}
         />
       </div>
     );
@@ -344,6 +353,10 @@ export function DiningStoreDetailScroll({
                 {primary("대기 취소 · Cancel", "Cancel reservation")}
               </button>
             </div>
+          ) : isGuest ? (
+            <p className="type-caption text-center text-muted-foreground py-g2">
+              로그인 후 줄서기 기능을 이용해보세요
+            </p>
           ) : (
             <AppButton variant="primary" onClick={onQueueJoin} className="w-full">
               {primary("예약하기", "Reserve")}

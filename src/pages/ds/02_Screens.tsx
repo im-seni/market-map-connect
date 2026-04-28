@@ -9,8 +9,7 @@ const links: { to: string; label: string }[] = [
   { to: "/vendor/1", label: "Vendor Detail" },
   { to: "/vendor/1/menu", label: "Menu" },
   { to: "/rewards", label: "Rewards / Stamp" },
-  { to: "/coupons", label: "Coupons" },
-  { to: "/coupons/c1", label: "Coupon Detail" },
+  { to: "/coupons", label: "Coupons (detail: UUID in /coupons/:id)" },
   { to: "/my/payment", label: "Payment Methods" },
   { to: "/announcements", label: "Announcements" },
   { to: "/my", label: "My Page" },
@@ -27,7 +26,7 @@ export default function ScreensHubPage() {
         </Link>
       </header>
       <div className="flex-1 overflow-y-auto px-g4 py-g4 space-y-g2">
-        <p className="type-caption text-muted-foreground pb-g4">13 required screens · 390×844 frame</p>
+        <p className="type-caption text-muted-foreground pb-g4">12 required screens · 390×844 frame</p>
         <ul className="space-y-g2 pb-g8">
           {links.map((l) => (
             <li key={l.to}>

@@ -1,5 +1,7 @@
 export type CrowdLevel = "low" | "moderate" | "busy";
-export type VendorStatus = "open" | "sold_out" | "closing_soon";
+import { getNowInKst } from "@/lib/timeKst";
+
+export type VendorStatus = "open" | "pre_open" | "closed" | "sold_out";
 export type StoreType = "food_court" | "food_truck" | "restaurant";
 
 export interface MenuItem {
@@ -67,8 +69,38 @@ export function waitTimeColorClass(minutes: number): string {
   return "text-brand-coral";
 }
 
-export function getVendorStatus(s: Store): VendorStatus {
-  return s.vendorStatus ?? "open";
+function parseKoHoursRange(ko: string): { startMin: number; endMin: number } | null {
+  const m = ko.match(/(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  const sh = Number(m[1]);
+  const sm = Number(m[2]);
+  const eh = Number(m[3]);
+  const em = Number(m[4]);
+  if ([sh, sm, eh, em].some(Number.isNaN)) return null;
+  const startMin = sh * 60 + sm;
+  const endMin = (eh === 24 ? 24 * 60 : eh * 60) + em;
+  return { startMin, endMin };
+}
+
+export function getVendorStatus(s: Store, nowKst: Date = getNowInKst()): VendorStatus {
+  if (s.vendorStatus === "sold_out") return "sold_out";
+
+  const range = parseKoHoursRange(s.hours.ko);
+  if (!range) return "open";
+
+  const nowMin = nowKst.getHours() * 60 + nowKst.getMinutes();
+  const { startMin, endMin } = range;
+
+  // Overnight range e.g. 18:00 - 02:00
+  if (endMin <= startMin) {
+    const open = nowMin >= startMin || nowMin < endMin;
+    if (open) return "open";
+    return "pre_open";
+  }
+
+  if (nowMin < startMin) return "pre_open";
+  if (nowMin >= endMin) return "closed";
+  return "open";
 }
 
 export function storeById(id: string): Store | undefined {
@@ -87,7 +119,7 @@ export const stores: Store[] = [
     tagline: { ko: "숯불향 가득한 꼬치 한 입.", en: "Charcoal skewers, one bite at a time." },
     description: "숯불에 직접 구운 다양한 꼬치 전문점. 비법 양념이 일품!",
     descriptionEn: "Charcoal-grilled skewers with a secret glaze.",
-    hours: { ko: "17:00 – 23:00", en: "5 PM – 11 PM" },
+    hours: { ko: "11:00 – 21:00", en: "11 AM – 9 PM" },
     rating: 4.8,
     waitTime: 15,
     lat: 37.4722,
@@ -121,7 +153,7 @@ export const stores: Store[] = [
     emoji: "🐙",
     description: "일본 정통 타코야끼를 그대로! 겉바속촉의 정석.",
     descriptionEn: "Crispy outside, creamy inside — classic takoyaki.",
-    hours: { ko: "18:00 – 23:30", en: "6 PM – 11:30 PM" },
+    hours: { ko: "11:00 – 21:00", en: "11 AM – 9 PM" },
     rating: 4.6,
     waitTime: 10,
     lat: 37.4727,
@@ -157,7 +189,7 @@ export const stores: Store[] = [
     emoji: "🧋",
     description: "수제 버블티와 과일 음료 전문. 직접 만든 타피오카 펄!",
     descriptionEn: "House-made pearls and fruit drinks.",
-    hours: { ko: "16:00 – 23:00", en: "4 PM – 11 PM" },
+    hours: { ko: "11:00 – 21:00", en: "11 AM – 9 PM" },
     rating: 4.5,
     waitTime: 5,
     lat: 37.4731,
@@ -189,7 +221,7 @@ export const stores: Store[] = [
     emoji: "🥞",
     description: "할머니 비법 레시피로 만든 바삭한 호떡.",
     descriptionEn: "Crispy hotteok from a family recipe.",
-    hours: { ko: "17:00 – 22:30", en: "5 PM – 10:30 PM" },
+    hours: { ko: "11:00 – 21:00", en: "11 AM – 9 PM" },
     rating: 4.9,
     waitTime: 20,
     lat: 37.4736,
@@ -221,7 +253,7 @@ export const stores: Store[] = [
     emoji: "🦀",
     description: "신선한 해산물을 즉석에서 요리해드립니다.",
     descriptionEn: "Fresh seafood cooked to order.",
-    hours: { ko: "17:00 – 24:00", en: "5 PM – 12 AM" },
+    hours: { ko: "11:00 – 21:00", en: "11 AM – 9 PM" },
     rating: 4.7,
     waitTime: 25,
     lat: 37.4740,
@@ -254,7 +286,7 @@ export const stores: Store[] = [
     emoji: "🍲",
     description: "얼큰한 매운탕과 어묵 한 그릇으로 몸 녹이기.",
     descriptionEn: "Spicy fish soup and oden — warm up by the pier.",
-    hours: { ko: "17:00 – 23:30", en: "5 PM – 11:30 PM" },
+    hours: { ko: "11:00 – 21:00", en: "11 AM – 9 PM" },
     rating: 4.5,
     waitTime: 12,
     lat: 37.4738,
@@ -263,7 +295,6 @@ export const stores: Store[] = [
     y: 68,
     queueCount: 7,
     crowdLevel: "moderate",
-    vendorStatus: "open",
     vibeTags: ["얼큰", "한그릇"],
     vibeTagsEn: ["Spicy", "Comfort bowl"],
     menu: [
@@ -285,7 +316,7 @@ export const stores: Store[] = [
     emoji: "🐟",
     description: "팥앙금 가득 붕어빵과 벨기에식 와플!",
     descriptionEn: "Filled fish cakes and Belgian waffles.",
-    hours: { ko: "18:00 – 23:00", en: "6 PM – 11 PM" },
+    hours: { ko: "11:00 – 21:00", en: "11 AM – 9 PM" },
     rating: 4.4,
     waitTime: 8,
     lat: 37.4745,
@@ -319,7 +350,7 @@ export const stores: Store[] = [
     emoji: "🍗",
     description: "매콤달콤 닭강정! 주문 즉시 튀겨드립니다.",
     descriptionEn: "Sweet-spicy Korean fried chicken bites, fried fresh.",
-    hours: { ko: "17:30 – 23:00", en: "5:30 PM – 11 PM" },
+    hours: { ko: "11:00 – 21:00", en: "11 AM – 9 PM" },
     rating: 4.6,
     waitTime: 12,
     lat: 37.4775,
@@ -327,7 +358,6 @@ export const stores: Store[] = [
     x: 15,
     y: 70,
     queueCount: 10,
-    vendorStatus: "closing_soon",
     hasCoupon: true,
     vibeTags: ["매운맛", "치킨"],
     vibeTagsEn: ["Spicy", "Chicken"],
@@ -352,7 +382,7 @@ export const stores: Store[] = [
     emoji: "🍭",
     description: "형형색색 예쁜 솜사탕! 인스타 필수 코스.",
     descriptionEn: "Rainbow cotton candy — made for photos.",
-    hours: { ko: "18:00 – 22:30", en: "6 PM – 10:30 PM" },
+    hours: { ko: "11:00 – 21:00", en: "11 AM – 9 PM" },
     rating: 4.3,
     waitTime: 3,
     lat: 37.4742,
@@ -361,7 +391,6 @@ export const stores: Store[] = [
     y: 82,
     queueCount: 3,
     crowdLevel: "low",
-    vendorStatus: "open",
     vibeTags: ["컬러풀", "키즈"],
     vibeTagsEn: ["Colorful", "Kids"],
     menu: [
@@ -385,7 +414,7 @@ export const stores: Store[] = [
     tagline: { ko: "당일 입고 활어로 바로 뜹니다.", en: "Sashimi from today’s catch." },
     description: "인천종합어시장 지하에서 바로 손질하는 활어회 전문.",
     descriptionEn: "Live fish sashimi prepared in the market basement.",
-    hours: { ko: "06:00 – 21:00", en: "6 AM – 9 PM" },
+    hours: { ko: "11:00 – 21:00", en: "11 AM – 9 PM" },
     rating: 4.6,
     waitTime: 18,
     lat: 37.4541,
@@ -413,7 +442,7 @@ export const stores: Store[] = [
     tagline: { ko: "원하는 손질 그대로 맞춰드립니다.", en: "Custom cuts while you wait." },
     description: "회·구이용 손질과 포장을 빠르게 처리합니다.",
     descriptionEn: "Fast prep and packing for sashimi or grill.",
-    hours: { ko: "07:00 – 20:00", en: "7 AM – 8 PM" },
+    hours: { ko: "11:00 – 21:00", en: "11 AM – 9 PM" },
     rating: 4.4,
     waitTime: 12,
     lat: 37.45405,
@@ -441,7 +470,7 @@ export const stores: Store[] = [
     tagline: { ko: "제철 조개로 뜨끈한 한 상.", en: "Steaming seasonal clams." },
     description: "지하 매장에서 조개찜·탕을 즉석 조리합니다.",
     descriptionEn: "Clam stew cooked to order in the basement.",
-    hours: { ko: "11:00 – 22:00", en: "11 AM – 10 PM" },
+    hours: { ko: "11:00 – 21:00", en: "11 AM – 9 PM" },
     rating: 4.5,
     waitTime: 22,
     lat: 37.45415,
@@ -470,7 +499,7 @@ export const stores: Store[] = [
     tagline: { ko: "2층 창가 자리에서 한눈에 보는 야경.", en: "Window seats with a view on 2F." },
     description: "2층 전용 좌석에서 회 코스와 단품을 즐길 수 있습니다.",
     descriptionEn: "Sashimi courses and à la carte on the second floor.",
-    hours: { ko: "11:30 – 22:30", en: "11:30 AM – 10:30 PM" },
+    hours: { ko: "11:00 – 21:00", en: "11 AM – 9 PM" },
     rating: 4.7,
     waitTime: 25,
     lat: 37.4542,
@@ -498,7 +527,7 @@ export const stores: Store[] = [
     tagline: { ko: "장 보고 올라와 커피 한 잔.", en: "Coffee after shopping the market." },
     description: "2층에서 간단한 브런치와 음료를 제공합니다.",
     descriptionEn: "Light brunch and drinks on the second floor.",
-    hours: { ko: "09:00 – 21:00", en: "9 AM – 9 PM" },
+    hours: { ko: "11:00 – 21:00", en: "11 AM – 9 PM" },
     rating: 4.2,
     waitTime: 8,
     lat: 37.45418,
@@ -525,7 +554,7 @@ export const stores: Store[] = [
     emoji: "🚢",
     description: "연안 여객 터미널에서 출발하는 팔미도 미니 요트 투어. 쿠폰은 승선권 데스크에서 사용하세요.",
     descriptionEn: "Palmido mini yacht from the coastal terminal. Redeem your coupon at the boarding desk.",
-    hours: { ko: "10:00 – 19:00 (계절·기상에 따라 변동)", en: "10 AM – 7 PM (season/weather dependent)" },
+    hours: { ko: "11:00 – 21:00", en: "11 AM – 9 PM" },
     rating: 4.6,
     waitTime: 5,
     lat: 37.4564120594447,
@@ -534,7 +563,6 @@ export const stores: Store[] = [
     y: 48,
     queueCount: 0,
     hasCoupon: true,
-    vendorStatus: "open",
     crowdLevel: "low",
     vibeTags: ["해상", "럭셔리"],
     vibeTagsEn: ["Seaside", "Scenic"],

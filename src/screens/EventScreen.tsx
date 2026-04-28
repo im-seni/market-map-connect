@@ -4,6 +4,7 @@ import { Clock, Film, Info, MapPin, Map as MapIcon, Music, Ship, Ticket, Users }
 import { TopUtilityBar } from "@/components/app/TopUtilityBar";
 import { AppButton } from "@/components/app/AppButton";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { getNowInKst } from "@/lib/timeKst";
 import { cn } from "@/lib/utils";
 
 type EventTab = "outdoor" | "yacht";
@@ -38,7 +39,7 @@ function timeToMin(t: string) {
 
 function nextFriSatDates(n: number) {
   const r: Date[] = [];
-  const t = new Date();
+  const t = getNowInKst();
   t.setHours(12, 0, 0, 0);
   for (let i = 0; i < 100 && r.length < n; i++) {
     const d = addDays(t, i);
@@ -155,7 +156,7 @@ export default function EventScreen() {
   }, [location.state]);
 
   const yachtToday = useMemo(() => {
-    const d = new Date();
+    const d = getNowInKst();
     const seed = d.getDate() + d.getMonth() * 3;
     const slots = ["18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30"].map(
       (time, i) => {
@@ -282,7 +283,7 @@ export default function EventScreen() {
                               <Music className="h-3.5 w-3.5 text-brand-royal" />
                             </div>
                             <span className="type-caption font-semibold text-foreground">
-                              {primary("라이브 & 플레이리스트", "Live & playlist")}
+                              {primary("버스킹", "Busking")}
                             </span>
                           </div>
                           <dl className="space-y-g2">

@@ -16,6 +16,7 @@ import {
   UserStorageScopeProvider,
   useUserStorageScopeValue,
 } from "@/contexts/UserStorageScopeContext";
+import { SupabaseAuthProvider } from "@/contexts/SupabaseAuthContext";
 import NotFound from "./pages/NotFound.tsx";
 import SplashScreen from "./screens/SplashScreen.tsx";
 import LoginScreen from "./screens/LoginScreen.tsx";
@@ -48,13 +49,17 @@ import PrototypePage from "./pages/ds/03_Prototype.tsx";
 
 const queryClient = new QueryClient();
 
-/** 로그인/게스트 전환 시 스코프가 바뀌면 쿠폰·스탬프 프로바이더를 리마운트해 데이터가 섞이지 않게 함 */
+/** 로그인/게스트 전환 시 스코프가 바뀌면 관련 프로바이더를 리마운트해 데이터가 섞이지 않게 함 */
 function ScopedCouponsRewardsSaved({ children }: { children: ReactNode }) {
   const scope = useUserStorageScopeValue();
   return (
     <CouponsProvider key={scope}>
       <RewardsProvider key={scope}>
-        <SavedStoresProvider>{children}</SavedStoresProvider>
+        <SavedStoresProvider>
+          <QueueProvider key={scope}>
+            {children}
+          </QueueProvider>
+        </SavedStoresProvider>
       </RewardsProvider>
     </CouponsProvider>
   );
@@ -68,8 +73,8 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <SupabaseAuthProvider>
           <UserStorageScopeProvider>
-          <QueueProvider>
           <ScopedCouponsRewardsSaved>
           <Routes>
             <Route path="/" element={<SplashScreen />} />
@@ -112,8 +117,8 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           </ScopedCouponsRewardsSaved>
-          </QueueProvider>
           </UserStorageScopeProvider>
+          </SupabaseAuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </LanguageProvider>

@@ -7,27 +7,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import {
-  getUserStorageScope,
-  readScopedStorageOrMigrateGuest,
-  scopedStorageKey,
-} from "@/lib/localUserScope";
-
-const STORAGE_BASE = "jemulpo.savedStores.v1";
-
-function loadIds(): string[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const scope = getUserStorageScope();
-    const raw = readScopedStorageOrMigrateGuest(STORAGE_BASE, scope);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter((x): x is string => typeof x === "string");
-  } catch {
-    return [];
-  }
-}
+import { supabase } from "@/lib/supabase";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 
 interface SavedStoresContextValue {
   savedIds: readonly string[];
@@ -38,39 +19,48 @@ interface SavedStoresContextValue {
 const SavedStoresContext = createContext<SavedStoresContextValue | undefined>(undefined);
 
 export function SavedStoresProvider({ children }: { children: ReactNode }) {
-  const [savedIds, setSavedIds] = useState<string[]>(() => loadIds());
+  const { user } = useSupabaseAuth();
+  const [savedIds, setSavedIds] = useState<string[]>([]);
 
   useEffect(() => {
-    try {
-      const key = scopedStorageKey(STORAGE_BASE, getUserStorageScope());
-      window.localStorage.setItem(key, JSON.stringify(savedIds));
-    } catch {
-      /* ignore */
-    }
-  }, [savedIds]);
+    if (!user) { setSavedIds([]); return; }
+    supabase
+      .from("saved_stores")
+      .select("store_id")
+      .eq("user_id", user.id)
+      .then(({ data }) => {
+        setSavedIds(data?.map((r) => r.store_id) ?? []);
+      });
+  }, [user?.id]);
 
   const isSaved = useCallback((storeId: string) => savedIds.includes(storeId), [savedIds]);
 
-  const toggleSaved = useCallback((storeId: string) => {
-    setSavedIds((prev) =>
-      prev.includes(storeId)
-        ? prev.filter((id) => id !== storeId)
-        : [storeId, ...prev.filter((id) => id !== storeId)],
-    );
-  }, []);
+  const toggleSaved = useCallback(
+    (storeId: string) => {
+      if (savedIds.includes(storeId)) {
+        setSavedIds((prev) => prev.filter((id) => id !== storeId));
+        if (user) {
+          supabase.from("saved_stores").delete()
+            .eq("user_id", user.id).eq("store_id", storeId)
+            .then(({ error }) => { if (error) console.error("[savedStores] delete:", error.message); });
+        }
+      } else {
+        setSavedIds((prev) => [storeId, ...prev]);
+        if (user) {
+          supabase.from("saved_stores").insert({ user_id: user.id, store_id: storeId })
+            .then(({ error }) => { if (error) console.error("[savedStores] insert:", error.message); });
+        }
+      }
+    },
+    [user, savedIds],
+  );
 
   const value = useMemo(
-    () => ({
-      savedIds,
-      isSaved,
-      toggleSaved,
-    }),
+    () => ({ savedIds, isSaved, toggleSaved }),
     [savedIds, isSaved, toggleSaved],
   );
 
-  return (
-    <SavedStoresContext.Provider value={value}>{children}</SavedStoresContext.Provider>
-  );
+  return <SavedStoresContext.Provider value={value}>{children}</SavedStoresContext.Provider>;
 }
 
 export function useSavedStores() {

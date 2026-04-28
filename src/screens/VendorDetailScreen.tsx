@@ -9,6 +9,7 @@ import { storeById, inferCrowdLevel, getVendorStatus, waitTimeColorClass } from 
 import { useQueue } from "@/contexts/QueueContext";
 import { useRewards } from "@/contexts/RewardsContext";
 import { useSavedStores } from "@/contexts/SavedStoresContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { cn } from "@/lib/utils";
 import NotFound from "@/pages/NotFound";
@@ -21,8 +22,9 @@ const crowdLabels = {
 
 const vendorLabels = {
   open: { ko: "영업 중", en: "Open" },
+  pre_open: { ko: "영업 전", en: "Before opening" },
+  closed: { ko: "영업 마감", en: "Closed" },
   sold_out: { ko: "품절", en: "Sold Out" },
-  closing_soon: { ko: "마감 임박", en: "Closing Soon" },
 } as const;
 
 export default function VendorDetailScreen() {
@@ -30,6 +32,7 @@ export default function VendorDetailScreen() {
   const navigate = useNavigate();
   const { primary } = useLanguage();
   const store = id ? storeById(id) : undefined;
+  const { user } = useSupabaseAuth();
   const { ticketFor, joinQueue, leaveQueue } = useQueue();
   const { addStamp, hasStampedToday, count, total } = useRewards();
   const { isSaved, toggleSaved } = useSavedStores();
@@ -48,6 +51,7 @@ export default function VendorDetailScreen() {
   const v = vendorLabels[status];
 
   const handleQueue = () => {
+    if (!user) { window.alert("로그인 후 이용 가능합니다."); return; }
     if (isQueued) return;
     const n = store.queueCount + 1;
     joinQueue(store.id, {
@@ -169,10 +173,14 @@ export default function VendorDetailScreen() {
                 대기 취소 · Cancel
               </AppButton>
             </>
-          ) : (
+          ) : user ? (
             <AppButton variant="primary" className="w-full" onClick={handleQueue}>
               줄서기 · Join queue ({store.queueCount}명 대기 · {store.queueCount} waiting)
             </AppButton>
+          ) : (
+            <p className="type-caption text-center text-muted-foreground py-g2">
+              로그인 후 줄서기 기능을 이용해보세요
+            </p>
           )}
         </div>
       </div>

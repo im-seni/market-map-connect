@@ -7,6 +7,7 @@ import type { StoreType } from "@/data/stores";
 import { stores } from "@/data/stores";
 import { reservationTheme, reservationUrgency } from "@/lib/reservationCardTheme";
 import { useQueue } from "@/contexts/QueueContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +16,7 @@ type WaitFilter = StoreType | "all";
 export default function WaitingScreen() {
   const navigate = useNavigate();
   const { primary } = useLanguage();
+  const { user } = useSupabaseAuth();
   const { tickets, leaveQueue } = useQueue();
   const [waitFilter, setWaitFilter] = useState<WaitFilter>("all");
 
@@ -49,6 +51,29 @@ export default function WaitingScreen() {
     () => activeQueues.some(({ ticket }) => ticket.etaMinutes >= 5),
     [activeQueues],
   );
+
+  if (!user) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col bg-background">
+        <TopUtilityBar />
+        <div className="flex flex-1 flex-col items-center justify-center gap-g4 px-g6 text-center">
+          <p className="type-body text-muted-foreground text-pretty">
+            {primary(
+              "로그인하고 줄서기를 이용해보세요.",
+              "Sign in to join the queue.",
+            )}
+          </p>
+          <AppButton
+            variant="primary"
+            className="w-full max-w-sm"
+            onClick={() => navigate("/auth/login")}
+          >
+            {primary("로그인하러 가기", "Sign in")}
+          </AppButton>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-background">
@@ -200,8 +225,8 @@ export default function WaitingScreen() {
             {showWalkCta && (
               <div className="mt-g4">
                 <AppButton
-                  variant="secondary"
-                  className="w-full"
+                  variant="primary"
+                  className="w-full shadow-elevate-sm"
                   onClick={() => navigate("/waiting/walk-route")}
                 >
                   {primary("대기 중 추천 루트", "Suggested route while waiting")}

@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "@/components/ui/sonner";
 import { stores } from "@/data/stores";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 
 export interface QueueTicket {
   vendorId: string;
@@ -41,14 +42,14 @@ interface QueueContextValue {
   clearQueueInbox: () => void;
 }
 
-const STORAGE_KEY = "jemulpo.queue.tickets.v1";
+const STORAGE_KEY_BASE = "jemulpo.queue.tickets.v1";
 
 const QueueContext = createContext<QueueContextValue | undefined>(undefined);
 
-function loadTickets(): QueueTicket[] {
+function loadTickets(storageKey: string): QueueTicket[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(storageKey);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
@@ -80,7 +81,11 @@ function tryBrowserNotify(title: string, body: string) {
 }
 
 export function QueueProvider({ children }: { children: ReactNode }) {
-  const [tickets, setTickets] = useState<QueueTicket[]>(() => loadTickets());
+  const { user, loading } = useSupabaseAuth();
+  const storageKey = loading ? null : `${STORAGE_KEY_BASE}::${user?.id ?? "guest"}`;
+  const [tickets, setTickets] = useState<QueueTicket[]>(() =>
+    storageKey ? loadTickets(storageKey) : [],
+  );
   const [queueBellDot, setQueueBellDot] = useState(false);
   const [queueInbox, setQueueInbox] = useState<QueueInAppNotification[]>([]);
   const lastTickRef = useRef<number>(Date.now());
@@ -166,12 +171,13 @@ export function QueueProvider({ children }: { children: ReactNode }) {
 
   // Persist
   useEffect(() => {
+    if (!storageKey) return;
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(tickets));
+      window.localStorage.setItem(storageKey, JSON.stringify(tickets));
     } catch {
       /* ignore */
     }
-  }, [tickets]);
+  }, [storageKey, tickets]);
 
   // Recompute queue by wall-clock time (minute based) + 입장 차례(0분·앞 0명) 10분 이상이면 자동 제거
   useEffect(() => {

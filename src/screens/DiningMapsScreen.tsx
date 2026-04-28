@@ -27,6 +27,7 @@ import {
 import { useQueue } from "@/contexts/QueueContext";
 import { useCoupons } from "@/contexts/CouponsContext";
 import { useSavedStores } from "@/contexts/SavedStoresContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { cn } from "@/lib/utils";
 import {
@@ -81,9 +82,10 @@ const typeFilters: { id: StoreType | "all"; ko: string; en: string }[] = [
 
 function vendorStatusTone(store: Store, primary: (ko: string, en: string) => string) {
   const s = getVendorStatus(store);
-  if (s === "open") return { text: primary("영업중", "Open"), className: "text-sky-600" };
-  if (s === "closing_soon") return { text: primary("영업 종료 임박", "Closing soon"), className: "text-amber-600" };
-  return { text: primary("영업 종료", "Closed"), className: "text-red-600" };
+  if (s === "open") return { text: primary("영업 중", "Open"), className: "text-sky-600" };
+  if (s === "pre_open") return { text: primary("영업 전", "Before opening"), className: "text-amber-600" };
+  if (s === "sold_out") return { text: primary("품절", "Sold out"), className: "text-red-600" };
+  return { text: primary("영업 마감", "Closed"), className: "text-red-600" };
 }
 
 const storePhotosById: Record<string, string[]> = {
@@ -133,6 +135,7 @@ export default function DiningMapsScreen() {
   const location = useLocation();
   const navigate = useNavigate();
   const { primary } = useLanguage();
+  const { user } = useSupabaseAuth();
   const { ticketFor, joinQueue, leaveQueue } = useQueue();
   const { coupons } = useCoupons();
   const { isSaved, toggleSaved } = useSavedStores();
@@ -1158,6 +1161,7 @@ export default function DiningMapsScreen() {
   const selectedWaitStyle = selectedStore ? styleForCategory(selectedStore.waitTime) : null;
 
   const handleQueue = () => {
+    if (!user) { window.alert("로그인 후 이용 가능합니다."); return; }
     if (!selectedStore || isQueued) return;
     joinQueue(selectedStore.id, {
       queueNumber: selectedStore.queueCount + 1,
@@ -1507,6 +1511,7 @@ export default function DiningMapsScreen() {
               queueFooterInline
               onQueueJoin={handleQueue}
               onQueueLeave={() => leaveQueue(selectedStore.id)}
+              isGuest={!user}
               saved={isSaved(selectedStore.id)}
               onToggleSaved={() => toggleSaved(selectedStore.id)}
             />
@@ -1736,6 +1741,7 @@ export default function DiningMapsScreen() {
                   queueFooterInline={false}
                   onQueueJoin={handleQueue}
                   onQueueLeave={() => leaveQueue(selectedStore.id)}
+                  isGuest={!user}
                   saved={isSaved(selectedStore.id)}
                   onToggleSaved={() => toggleSaved(selectedStore.id)}
                 />
@@ -1755,10 +1761,14 @@ export default function DiningMapsScreen() {
                           {primary("대기 취소 · Cancel", "Cancel reservation")}
                         </button>
                       </div>
-                    ) : (
+                    ) : user ? (
                       <AppButton variant="primary" onClick={handleQueue} className="w-full">
                         {primary("예약하기", "Reserve")}
                       </AppButton>
+                    ) : (
+                      <p className="type-caption text-center text-muted-foreground py-g2">
+                        로그인 후 줄서기 기능을 이용해보세요
+                      </p>
                     )}
                   </div>
                 )}

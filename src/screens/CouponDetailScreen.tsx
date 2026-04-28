@@ -1,11 +1,16 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { AppBottomSheet } from "@/components/app/AppBottomSheet";
+import { AppButton } from "@/components/app/AppButton";
 import { StackHeader } from "@/components/app/StackHeader";
 import { PhoneFrame } from "@/components/app/PhoneFrame";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Coupon } from "@/data/coupons";
 import { formatCouponMeta } from "@/data/coupons";
-import { useCoupons } from "@/contexts/CouponsContext";
+import { couponFromSupabaseRow, useCoupons } from "@/contexts/CouponsContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
+import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/i18n/LanguageContext";
 import NotFound from "@/pages/NotFound";
 
@@ -15,13 +20,85 @@ function redeemPayload(couponId: string) {
 
 export default function CouponDetailScreen() {
   const { couponId } = useParams();
+  const navigate = useNavigate();
   const { locale, primary } = useLanguage();
+  const { user } = useSupabaseAuth();
   const { couponById } = useCoupons();
-  const c = couponId ? couponById(couponId) : undefined;
+  const fromList = couponId ? couponById(couponId) : undefined;
+  const [fetched, setFetched] = useState<Coupon | null>(null);
+  const [fetchDone, setFetchDone] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
+
+  useEffect(() => {
+    if (!couponId) {
+      setFetched(null);
+      setFetchDone(true);
+      return;
+    }
+    if (!user) {
+      setFetched(null);
+      setFetchDone(true);
+      return;
+    }
+    if (fromList) {
+      setFetched(null);
+      setFetchDone(true);
+      return;
+    }
+    let cancelled = false;
+    setFetchDone(false);
+    setFetched(null);
+    void supabase
+      .from("coupons")
+      .select("id, title_ko, title_en, vendor_id, expires_at, state")
+      .eq("id", couponId)
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error || !data) {
+          setFetched(null);
+        } else {
+          setFetched(couponFromSupabaseRow(data));
+        }
+        setFetchDone(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [couponId, user?.id, fromList]);
+
+  const c = fromList ?? fetched;
+  if (!couponId) return <NotFound />;
+  if (!user) {
+    return (
+      <PhoneFrame className="min-h-dvh">
+        <StackHeader title={primary("쿠폰 상세", "Coupon details")} />
+        <div className="flex-1 px-g4 py-g6 space-y-g4">
+          <p className="type-body text-muted-foreground">
+            {primary("로그인 후 쿠폰을 확인할 수 있어요", "Sign in to view this coupon")}
+          </p>
+          <AppButton variant="primary" className="w-full" onClick={() => navigate("/auth/login")}>
+            {primary("로그인", "Sign in")}
+          </AppButton>
+        </div>
+      </PhoneFrame>
+    );
+  }
+  if (!fromList && !fetchDone) {
+    return (
+      <PhoneFrame className="min-h-dvh">
+        <StackHeader title={primary("쿠폰 상세", "Coupon details")} />
+        <div className="flex-1 px-g4 py-g6 space-y-g3">
+          <Skeleton className="h-8 w-[min(90%,320px)]" />
+          <Skeleton className="h-4 w-[min(60%,200px)]" />
+        </div>
+      </PhoneFrame>
+    );
+  }
   if (!c) return <NotFound />;
 
-  const meta = formatCouponMeta(c.expiresAt, locale);
+  const meta = formatCouponMeta(c.expiresAt, locale, new Date(), c.state);
   const isActive = c.state === "active";
   const payload = redeemPayload(c.id);
 

@@ -4,7 +4,7 @@ import { StackHeader } from "@/components/app/StackHeader";
 import { AppButton } from "@/components/app/AppButton";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { loginWithEmailPassword, setDemoSession } from "@/lib/demoAuthStorage";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { isValidEmailFormat } from "@/lib/emailValidation";
 import { cn } from "@/lib/utils";
 
@@ -13,10 +13,12 @@ const inputErrorRing = "border-2 border-destructive focus-visible:ring-destructi
 export default function AuthLoginScreen() {
   const navigate = useNavigate();
   const { primary } = useLanguage();
+  const { signIn } = useSupabaseAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [triedSubmit, setTriedSubmit] = useState(false);
   const [credentialsWrong, setCredentialsWrong] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const emailError = useMemo(
     () => triedSubmit && (!email.trim() || !isValidEmailFormat(email)),
@@ -51,18 +53,20 @@ export default function AuthLoginScreen() {
     );
   }, [credentialsWrong, primary]);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setTriedSubmit(true);
     setCredentialsWrong(false);
     if (!email.trim() || !isValidEmailFormat(email) || !password) return;
 
-    const user = loginWithEmailPassword(email, password);
-    if (!user) {
+    setSubmitting(true);
+    const { error } = await signIn(email, password);
+    setSubmitting(false);
+
+    if (error) {
       setCredentialsWrong(true);
       return;
     }
-    setDemoSession({ email: user.email, displayName: user.displayName });
     navigate("/map");
   };
 
@@ -130,12 +134,13 @@ export default function AuthLoginScreen() {
         </div>
         <AppButton
           type="submit"
+          disabled={submitting}
           className={cn(
             "w-full min-h-12 bg-brand-royal text-white shadow-elevate-sm hover:brightness-105",
             "border-0",
           )}
         >
-          {primary("로그인", "Log in")}
+          {submitting ? primary("로그인 중…", "Signing in…") : primary("로그인", "Log in")}
         </AppButton>
         <p className="type-caption text-center text-muted-foreground">
           {primary("계정이 없으신가요? ", "No account? ")}

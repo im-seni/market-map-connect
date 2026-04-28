@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { TopUtilityBar } from "@/components/app/TopUtilityBar";
-import { getDemoSession } from "@/lib/demoAuthStorage";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { useLanguage } from "@/i18n/LanguageContext";
 
 type Row = {
@@ -55,7 +55,7 @@ function RowLink({ row }: { row: Row }) {
 
 export default function MyPageScreen() {
   const { primary } = useLanguage();
-  const session = getDemoSession();
+  const { user, isAnonymous } = useSupabaseAuth();
 
   return (
     <div className="flex flex-1 flex-col min-h-0 bg-background">
@@ -69,7 +69,9 @@ export default function MyPageScreen() {
             <div className="flex-1">
               <p className="type-caption text-muted-foreground">{primary("프로필", "Profile")}</p>
               <p className="type-title mt-g1 break-words">
-                {session ? session.displayName : primary("게스트", "Guest")}
+                {isAnonymous
+                  ? primary("게스트", "Guest")
+                  : (user?.user_metadata?.display_name ?? user?.email ?? primary("게스트", "Guest"))}
               </p>
             </div>
             <Link

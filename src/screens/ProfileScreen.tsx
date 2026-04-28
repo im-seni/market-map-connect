@@ -11,39 +11,34 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { clearDemoSession, deleteDemoUserByEmail, getDemoSession } from "@/lib/demoAuthStorage";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { cn } from "@/lib/utils";
 
 export default function ProfileScreen() {
   const navigate = useNavigate();
   const { primary } = useLanguage();
+  const { user, isAnonymous, signOut, deleteAccount } = useSupabaseAuth();
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const session = getDemoSession();
-  const fields =
-    session != null
-      ? [
-          { label: "이름 · Name", value: session.displayName },
-          { label: "이메일 · Email", value: session.email },
-          { label: "전화번호 · Phone", value: "—" },
-        ]
-      : [
-          { label: "이름 · Name", value: "게스트 · Guest" },
-          { label: "이메일 · Email", value: "guest@jemulpogu.market" },
-          { label: "전화번호 · Phone", value: "—" },
-        ];
+  const displayName = user?.user_metadata?.display_name ?? (isAnonymous ? "게스트 · Guest" : "—");
+  const email = user?.email ?? (isAnonymous ? "guest@jemulpogu.market" : "—");
+  const fields = [
+    { label: "이름 · Name", value: displayName },
+    { label: "이메일 · Email", value: email },
+    { label: "전화번호 · Phone", value: "—" },
+  ];
 
-  const handleSignOut = () => {
-    clearDemoSession();
+  const handleSignOut = async () => {
+    await signOut();
     navigate("/login");
   };
 
-  const handleConfirmDelete = () => {
-    if (!session) return;
-    deleteDemoUserByEmail(session.email);
-    clearDemoSession();
-    setDeleteOpen(false);
-    navigate("/");
+  const handleConfirmDelete = async () => {
+    const { error } = await deleteAccount();
+    if (!error) {
+      setDeleteOpen(false);
+      navigate("/");
+    }
   };
 
   return (
@@ -66,9 +61,9 @@ export default function ProfileScreen() {
         </AppButton>
         <AppButton
           variant="tertiary"
-          className={cn("w-full", session && "text-destructive")}
-          disabled={!session}
-          onClick={() => session && setDeleteOpen(true)}
+          className={cn("w-full", !isAnonymous && "text-destructive")}
+          disabled={isAnonymous}
+          onClick={() => !isAnonymous && setDeleteOpen(true)}
         >
           {primary("계정 삭제 · Delete account", "Delete account")}
         </AppButton>

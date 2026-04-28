@@ -15,8 +15,11 @@ export default function HomeScreen() {
   const navigate = useNavigate();
   const { primary } = useLanguage();
   const [q, setQ] = useState("");
-  const { couponById } = useCoupons();
-  const featuredCoupon = couponById("c1");
+  const { coupons } = useCoupons();
+  const featuredCoupon = useMemo(
+    () => coupons.find((c) => c.state === "active"),
+    [coupons],
+  );
 
   const filtered = useMemo(() => {
     if (!q.trim()) return stores;
@@ -58,8 +61,8 @@ export default function HomeScreen() {
               </h2>
               <p className="type-body text-muted-foreground text-pretty">
                 {primary(
-                  "짧은 대기 시간, 라이브 공연, 시원한 한강 바람",
-                  "Short waits, live performances, cool river breeze",
+                  "짧은 대기 시간, 버스킹 공연, 시원한 한강 바람",
+                  "Short waits, busking shows, cool river breeze",
                 )}
               </p>
             </div>
