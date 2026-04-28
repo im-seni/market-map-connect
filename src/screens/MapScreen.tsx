@@ -234,7 +234,7 @@ export default function MapScreen() {
               </p>
               {sheetStore.menu.slice(0, 3).map((m, i) => (
                 <div key={i} className="flex justify-between type-body border-b border-border/60 py-g2">
-                  <span>{m.name}</span>
+                  <span>{primary(m.name, m.nameEn)}</span>
                   <span className="font-semibold text-brand-royal">{m.price.toLocaleString()}₩</span>
                 </div>
               ))}

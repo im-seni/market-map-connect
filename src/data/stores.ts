@@ -6,8 +6,10 @@ export type StoreType = "food_court" | "food_truck" | "restaurant";
 
 export interface MenuItem {
   name: string;
+  nameEn: string;
   price: number;
   description: string;
+  descriptionEn: string;
   popular?: boolean;
   spicy?: boolean;
   signature?: boolean;
@@ -132,10 +134,10 @@ export const stores: Store[] = [
     vibeTags: ["불맛", "가족", "야외"],
     vibeTagsEn: ["Smoky", "Family", "Outdoor"],
     menu: [
-      { name: "소고기 꼬치", price: 4000, description: "프리미엄 소고기", popular: true, signature: true },
-      { name: "닭꼬치", price: 3000, description: "달콤한 데리야끼 소스", spicy: true },
-      { name: "새우 꼬치", price: 5000, description: "대왕 새우 2마리", popular: true },
-      { name: "떡꼬치", price: 2500, description: "매콤달콤 떡꼬치", spicy: true },
+      { name: "소고기 꼬치", nameEn: "Beef Skewer", price: 4000, description: "프리미엄 소고기", descriptionEn: "Premium beef", popular: true, signature: true },
+      { name: "닭꼬치", nameEn: "Chicken Skewer", price: 3000, description: "달콤한 데리야끼 소스", descriptionEn: "Sweet teriyaki glaze", spicy: true },
+      { name: "새우 꼬치", nameEn: "Shrimp Skewer", price: 5000, description: "대왕 새우 2마리", descriptionEn: "Two jumbo shrimp", popular: true },
+      { name: "떡꼬치", nameEn: "Tteok Skewer", price: 2500, description: "매콤달콤 떡꼬치", descriptionEn: "Sweet-spicy rice cake skewer", spicy: true },
     ],
     reviews: [
       { id: "r1-1", userName: "김민준", rating: 5, comment: "숯불향이 진짜 일품이에요. 소고기 꼬치 강추!", commentEn: "The smoky flavor is amazing. Highly recommend the beef skewer!", menuItem: "소고기 꼬치", date: "2026-04-20" },
@@ -165,9 +167,9 @@ export const stores: Store[] = [
     vibeTags: ["바삭", "인스타"],
     vibeTagsEn: ["Crispy", "Photo spot"],
     menu: [
-      { name: "오리지널 (6개)", price: 5000, description: "클래식 타코야끼", popular: true },
-      { name: "치즈 (6개)", price: 6000, description: "모짜렐라 치즈 듬뿍" },
-      { name: "명란마요 (6개)", price: 6500, description: "매콤한 명란 토핑", spicy: true },
+      { name: "오리지널 (6개)", nameEn: "Original (6 pcs)", price: 5000, description: "클래식 타코야끼", descriptionEn: "Classic takoyaki", popular: true },
+      { name: "치즈 (6개)", nameEn: "Cheese (6 pcs)", price: 6000, description: "모짜렐라 치즈 듬뿍", descriptionEn: "Loaded mozzarella" },
+      { name: "명란마요 (6개)", nameEn: "Mentaiko Mayo (6 pcs)", price: 6500, description: "매콤한 명란 토핑", descriptionEn: "Spicy cod roe topping", spicy: true },
     ],
     reviews: [
       { id: "r2-1", userName: "박서연", rating: 5, comment: "오리지널이 제일 맛있어요. 겉은 바삭 속은 쫄깃!", commentEn: "Original is the best — crispy outside, chewy inside!", menuItem: "오리지널 (6개)", date: "2026-04-21" },
@@ -201,10 +203,10 @@ export const stores: Store[] = [
     vibeTags: ["달달", "휴식"],
     vibeTagsEn: ["Sweet", "Chill"],
     menu: [
-      { name: "흑당 버블티", price: 5500, description: "진한 흑당 밀크티", popular: true },
-      { name: "딸기 스무디", price: 6000, description: "생딸기 100%" },
-      { name: "망고 주스", price: 5000, description: "태국산 망고" },
-      { name: "레몬에이드", price: 4500, description: "상큼한 수제 레몬에이드" },
+      { name: "흑당 버블티", nameEn: "Brown Sugar Bubble Tea", price: 5500, description: "진한 흑당 밀크티", descriptionEn: "Rich brown sugar milk tea", popular: true },
+      { name: "딸기 스무디", nameEn: "Strawberry Smoothie", price: 6000, description: "생딸기 100%", descriptionEn: "100% fresh strawberry" },
+      { name: "망고 주스", nameEn: "Mango Juice", price: 5000, description: "태국산 망고", descriptionEn: "Thai mango" },
+      { name: "레몬에이드", nameEn: "Lemonade", price: 4500, description: "상큼한 수제 레몬에이드", descriptionEn: "House-made fresh lemonade" },
     ],
     reviews: [
       { id: "r3-1", userName: "최유리", rating: 5, comment: "흑당 버블티 진짜 맛있어요! 펄이 쫄깃쫄깃해요.", commentEn: "The brown sugar bubble tea is so good! Pearls are perfectly chewy.", menuItem: "흑당 버블티", date: "2026-04-20" },
@@ -234,9 +236,9 @@ export const stores: Store[] = [
     vibeTags: ["전통", "따뜻함"],
     vibeTagsEn: ["Traditional", "Cozy"],
     menu: [
-      { name: "씨앗 호떡", price: 2000, description: "견과류 가득", popular: true },
-      { name: "꿀 호떡", price: 2000, description: "달콤한 꿀 시럽" },
-      { name: "치즈 호떡", price: 2500, description: "늘어나는 치즈!", popular: true, signature: true },
+      { name: "씨앗 호떡", nameEn: "Seed Hotteok", price: 2000, description: "견과류 가득", descriptionEn: "Loaded with nuts", popular: true },
+      { name: "꿀 호떡", nameEn: "Honey Hotteok", price: 2000, description: "달콤한 꿀 시럽", descriptionEn: "Sweet honey syrup" },
+      { name: "치즈 호떡", nameEn: "Cheese Hotteok", price: 2500, description: "늘어나는 치즈!", descriptionEn: "Stretchy melted cheese!", popular: true, signature: true },
     ],
     reviews: [
       { id: "r4-1", userName: "정하은", rating: 5, comment: "치즈 호떡 대박이에요. 치즈가 엄청 늘어나요!", commentEn: "Cheese hotteok is amazing — the cheese pull is incredible!", menuItem: "치즈 호떡", date: "2026-04-19" },
@@ -266,10 +268,10 @@ export const stores: Store[] = [
     vibeTags: ["프리미엄", "회"],
     vibeTagsEn: ["Premium", "Sashimi"],
     menu: [
-      { name: "조개구이 세트", price: 15000, description: "모듬 조개구이", popular: true },
-      { name: "새우튀김", price: 8000, description: "바삭한 새우튀김 5마리" },
-      { name: "오징어볶음", price: 10000, description: "매콤 오징어볶음", spicy: true },
-      { name: "해물파전", price: 12000, description: "바삭한 해물파전", signature: true },
+      { name: "조개구이 세트", nameEn: "Grilled Clam Set", price: 15000, description: "모듬 조개구이", descriptionEn: "Assorted grilled clams", popular: true },
+      { name: "새우튀김", nameEn: "Fried Shrimp", price: 8000, description: "바삭한 새우튀김 5마리", descriptionEn: "Crispy fried shrimp, 5 pcs" },
+      { name: "오징어볶음", nameEn: "Stir-fried Squid", price: 10000, description: "매콤 오징어볶음", descriptionEn: "Spicy stir-fried squid", spicy: true },
+      { name: "해물파전", nameEn: "Seafood Pajeon", price: 12000, description: "바삭한 해물파전", descriptionEn: "Crispy seafood scallion pancake", signature: true },
     ],
     reviews: [
       { id: "r5-1", userName: "이수호", rating: 5, comment: "조개구이 세트 강추! 신선도가 정말 달라요.", commentEn: "Clam grill set is highly recommended — freshness is on another level.", menuItem: "조개구이 세트", date: "2026-04-21" },
@@ -298,9 +300,9 @@ export const stores: Store[] = [
     vibeTags: ["얼큰", "한그릇"],
     vibeTagsEn: ["Spicy", "Comfort bowl"],
     menu: [
-      { name: "대구 매운탕", price: 9000, description: "시원한 국물", popular: true, spicy: true },
-      { name: "해물 어묵탕", price: 7000, description: "어묵·오징어 듬뿍" },
-      { name: "라면 추가", price: 2000, description: "국물에 말아 먹기" },
+      { name: "대구 매운탕", nameEn: "Spicy Cod Soup", price: 9000, description: "시원한 국물", descriptionEn: "Rich spicy broth", popular: true, spicy: true },
+      { name: "해물 어묵탕", nameEn: "Seafood Oden Soup", price: 7000, description: "어묵·오징어 듬뿍", descriptionEn: "Oden and squid" },
+      { name: "라면 추가", nameEn: "Add Ramen Noodles", price: 2000, description: "국물에 말아 먹기", descriptionEn: "Noodles in the broth" },
     ],
     reviews: [
       { id: "r14-1", userName: "김서연", rating: 5, comment: "매운탕 국물이 진짜 시원해요. 바람 부는 날 최고.", commentEn: "The soup is so refreshing — perfect on a windy night.", menuItem: "대구 매운탕", date: "2026-04-24" },
@@ -327,12 +329,12 @@ export const stores: Store[] = [
     vibeTags: ["간식", "달콤"],
     vibeTagsEn: ["Snack", "Sweet"],
     menu: [
-      { name: "붕어빵 (3개)", price: 2000, description: "달콤한 팥 가득" },
-      { name: "슈크림 붕어빵 (3개)", price: 3000, description: "진한 커스터드 크림", popular: true },
-      { name: "벨기에 와플", price: 5000, description: "생크림 + 과일 토핑", signature: true },
-      { name: "버터 팝콘", price: 4000, description: "고소한 시네마 스타일", popular: true },
-      { name: "달고나 팝콘", price: 4500, description: "달콤한 코팅 팝콘" },
-      { name: "미니 호떡 (2개)", price: 2500, description: "한 입 크기 꿀호떡" },
+      { name: "붕어빵 (3개)", nameEn: "Fish-shaped Bread (3 pcs)", price: 2000, description: "달콤한 팥 가득", descriptionEn: "Sweet red bean filling" },
+      { name: "슈크림 붕어빵 (3개)", nameEn: "Cream Puff Fish Bread (3 pcs)", price: 3000, description: "진한 커스터드 크림", descriptionEn: "Rich custard cream", popular: true },
+      { name: "벨기에 와플", nameEn: "Belgian Waffle", price: 5000, description: "생크림 + 과일 토핑", descriptionEn: "Whipped cream & fruit toppings", signature: true },
+      { name: "버터 팝콘", nameEn: "Butter Popcorn", price: 4000, description: "고소한 시네마 스타일", descriptionEn: "Cinema-style buttery", popular: true },
+      { name: "달고나 팝콘", nameEn: "Dalgona Popcorn", price: 4500, description: "달콤한 코팅 팝콘", descriptionEn: "Sweet candy-coated popcorn" },
+      { name: "미니 호떡 (2개)", nameEn: "Mini Hotteok (2 pcs)", price: 2500, description: "한 입 크기 꿀호떡", descriptionEn: "Bite-sized honey hotteok" },
     ],
     reviews: [
       { id: "r6-1", userName: "오민서", rating: 4, comment: "슈크림 붕어빵 엄청 고소해요! 따뜻할 때 먹어야 해요.", commentEn: "Cream puff fish cake is so rich! Best eaten warm.", menuItem: "슈크림 붕어빵 (3개)", date: "2026-04-24" },
@@ -362,10 +364,10 @@ export const stores: Store[] = [
     vibeTags: ["매운맛", "치킨"],
     vibeTagsEn: ["Spicy", "Chicken"],
     menu: [
-      { name: "순한맛 (중)", price: 8000, description: "아이들도 좋아하는 달콤한 맛" },
-      { name: "매운맛 (중)", price: 8000, description: "중독성 있는 매콤한 맛", popular: true, spicy: true },
-      { name: "간장맛 (중)", price: 8000, description: "깊은 간장 소스" },
-      { name: "양념 반 후라이드 반", price: 10000, description: "두 가지 맛을 한번에!", signature: true },
+      { name: "순한맛 (중)", nameEn: "Mild (M)", price: 8000, description: "아이들도 좋아하는 달콤한 맛", descriptionEn: "Sweet flavor kids love too" },
+      { name: "매운맛 (중)", nameEn: "Spicy (M)", price: 8000, description: "중독성 있는 매콤한 맛", descriptionEn: "Addictive spicy kick", popular: true, spicy: true },
+      { name: "간장맛 (중)", nameEn: "Soy Glaze (M)", price: 8000, description: "깊은 간장 소스", descriptionEn: "Deep soy sauce" },
+      { name: "양념 반 후라이드 반", nameEn: "Half & Half", price: 10000, description: "두 가지 맛을 한번에!", descriptionEn: "Two flavors in one!", signature: true },
     ],
     reviews: [
       { id: "r7-1", userName: "한지훈", rating: 5, comment: "매운맛 진짜 중독돼요. 계속 생각나는 맛!", commentEn: "The spicy version is addictive. I keep thinking about it!", menuItem: "매운맛 (중)", date: "2026-04-20" },
@@ -394,9 +396,9 @@ export const stores: Store[] = [
     vibeTags: ["컬러풀", "키즈"],
     vibeTagsEn: ["Colorful", "Kids"],
     menu: [
-      { name: "레인보우 솜사탕", price: 4000, description: "7가지 컬러", popular: true },
-      { name: "꽃 솜사탕", price: 5000, description: "장미 모양 솜사탕" },
-      { name: "캐릭터 솜사탕", price: 6000, description: "귀여운 캐릭터 모양" },
+      { name: "레인보우 솜사탕", nameEn: "Rainbow Cotton Candy", price: 4000, description: "7가지 컬러", descriptionEn: "7 colors", popular: true },
+      { name: "꽃 솜사탕", nameEn: "Flower Cotton Candy", price: 5000, description: "장미 모양 솜사탕", descriptionEn: "Rose-shaped cotton candy" },
+      { name: "캐릭터 솜사탕", nameEn: "Character Cotton Candy", price: 6000, description: "귀여운 캐릭터 모양", descriptionEn: "Cute character shape" },
     ],
     reviews: [
       { id: "r8-1", userName: "윤채원", rating: 5, comment: "레인보우 솜사탕 너무 예뻐요! 사진 찍기 딱이에요.", commentEn: "Rainbow cotton candy looks stunning — perfect for photos!", menuItem: "레인보우 솜사탕", date: "2026-04-25" },
@@ -426,8 +428,8 @@ export const stores: Store[] = [
     vibeTags: ["회", "신선"],
     vibeTagsEn: ["Sashimi", "Fresh"],
     menu: [
-      { name: "광어회 소", price: 35000, description: "2인 기준", popular: true },
-      { name: "우럭회", price: 28000, description: "소자", signature: true },
+      { name: "광어회 소", nameEn: "Flounder Sashimi (S)", price: 35000, description: "2인 기준", descriptionEn: "For 2 persons", popular: true },
+      { name: "우럭회", nameEn: "Rockfish Sashimi", price: 28000, description: "소자", descriptionEn: "Small serving", signature: true },
     ],
     reviews: [{ id: "r9-1", userName: "박지훈", rating: 5, comment: "B1에서 이렇게 신선한 회 처음!", commentEn: "So fresh for B1 market!", menuItem: "광어회 소", date: "2026-04-26" }],
   },
@@ -454,8 +456,8 @@ export const stores: Store[] = [
     vibeTags: ["손질", "포장"],
     vibeTagsEn: ["Prep", "Pack"],
     menu: [
-      { name: "광어 손질", price: 5000, description: "기본 손질", popular: true },
-      { name: "전복 손질", price: 3000, description: "껍질 제거" },
+      { name: "광어 손질", nameEn: "Flounder Prep", price: 5000, description: "기본 손질", descriptionEn: "Basic cleaning", popular: true },
+      { name: "전복 손질", nameEn: "Abalone Prep", price: 3000, description: "껍질 제거", descriptionEn: "Shell removal" },
     ],
     reviews: [{ id: "r10-1", userName: "이나영", rating: 4, comment: "손질 깔끔해요.", commentEn: "Very clean prep.", menuItem: "광어 손질", date: "2026-04-26" }],
   },
@@ -482,8 +484,8 @@ export const stores: Store[] = [
     vibeTags: ["조개", "뜨끈"],
     vibeTagsEn: ["Clams", "Hot pot"],
     menu: [
-      { name: "모둠 조개찜", price: 45000, description: "2~3인", popular: true },
-      { name: "바지락 칼국수", price: 9000, description: "1인" },
+      { name: "모둠 조개찜", nameEn: "Assorted Clam Steam", price: 45000, description: "2~3인", descriptionEn: "For 2–3 persons", popular: true },
+      { name: "바지락 칼국수", nameEn: "Clam Knife Noodles", price: 9000, description: "1인", descriptionEn: "For 1 person" },
     ],
     reviews: [{ id: "r11-1", userName: "최민", rating: 5, comment: "B1인데 분위기 좋아요.", commentEn: "Nice vibe even in B1.", menuItem: "모둠 조개찜", date: "2026-04-26" }],
   },
@@ -511,8 +513,8 @@ export const stores: Store[] = [
     vibeTags: ["야경", "코스"],
     vibeTagsEn: ["View", "Course"],
     menu: [
-      { name: "회 코스 A", price: 55000, description: "2인", popular: true, signature: true },
-      { name: "광어 미니", price: 22000, description: "1인" },
+      { name: "회 코스 A", nameEn: "Sashimi Course A", price: 55000, description: "2인", descriptionEn: "For 2 persons", popular: true, signature: true },
+      { name: "광어 미니", nameEn: "Flounder Mini", price: 22000, description: "1인", descriptionEn: "For 1 person" },
     ],
     reviews: [{ id: "r12-1", userName: "Sarah", rating: 5, comment: "2층 뷰 최고!", commentEn: "Best view on 2F!", menuItem: "회 코스 A", date: "2026-04-26" }],
   },
@@ -539,8 +541,8 @@ export const stores: Store[] = [
     vibeTags: ["커피", "브런치"],
     vibeTagsEn: ["Coffee", "Brunch"],
     menu: [
-      { name: "아메리카노", price: 3500, description: "HOT/ICE", popular: true },
-      { name: "팥빙수", price: 8000, description: "여름 한정" },
+      { name: "아메리카노", nameEn: "Americano", price: 3500, description: "HOT/ICE", descriptionEn: "HOT / ICED", popular: true },
+      { name: "팥빙수", nameEn: "Red Bean Shaved Ice", price: 8000, description: "여름 한정", descriptionEn: "Summer only" },
     ],
     reviews: [{ id: "r13-1", userName: "김도윤", rating: 4, comment: "2층이라 한산해요.", commentEn: "Quiet on 2F.", menuItem: "아메리카노", date: "2026-04-26" }],
   },
@@ -567,7 +569,7 @@ export const stores: Store[] = [
     vibeTags: ["해상", "럭셔리"],
     vibeTagsEn: ["Seaside", "Scenic"],
     menu: [
-      { name: "미니 요트 1인 (기본)", price: 20000, description: "주말·성수기 별도", popular: true },
+      { name: "미니 요트 1인 (기본)", nameEn: "Mini Yacht (1 person)", price: 20000, description: "주말·성수기 별도", descriptionEn: "Weekend / peak surcharge may apply", popular: true },
     ],
     reviews: [
       {

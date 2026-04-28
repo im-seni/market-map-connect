@@ -140,7 +140,7 @@ export default function VendorDetailScreen() {
           return (
             <div className="grid grid-cols-1 gap-g3">
               <AppButton variant="secondary" className="w-full" onClick={() => navigate(`/vendor/${store.id}/menu`)}>
-                메뉴 전체 · Full menu
+                {primary("메뉴 전체", "Full menu")}
               </AppButton>
               <AppButton
                 variant="tertiary"

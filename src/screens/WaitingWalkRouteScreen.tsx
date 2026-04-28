@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { StackHeader } from "@/components/app/StackHeader";
-import { useLanguage } from "@/i18n/LanguageContext";
 import { WAITING_WALK_STOPS, getWalkSegmentsForStops, type WalkStop } from "@/data/waitingWalkRoute";
 import { EVENT_PLAZA_PLACES_QUERY } from "@/data/yeonanMapAnchors";
 import { cn } from "@/lib/utils";
 
 export default function WaitingWalkRouteScreen() {
-  const { primary } = useLanguage();
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<unknown>(null);
   const polylineRef = useRef<{ setPath: (p: unknown) => void; setMap: (v: unknown) => void } | null>(
@@ -163,7 +161,7 @@ export default function WaitingWalkRouteScreen() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-background">
-      <StackHeader title={primary("산책 루트 추천", "Suggested walk route")} />
+      <StackHeader title="Suggested Tour Route" />
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="relative h-[min(42vh,280px)] w-full shrink-0 border-b border-border bg-muted">
@@ -177,10 +175,7 @@ export default function WaitingWalkRouteScreen() {
 
         <div className="px-g4 py-g4">
           <p className="type-body text-foreground">
-            {primary(
-              "대기 시간 동안 가볍게 둘러볼 수 있는 코스를 추천드려요!",
-              "We suggest a light route to enjoy while you wait.",
-            )}
+            We suggest a light stroll to enjoy while you wait!
           </p>
 
           <ol className="mt-g5 space-y-0">
@@ -202,17 +197,14 @@ export default function WaitingWalkRouteScreen() {
                   </div>
                   <div className="min-w-0 flex-1 pb-g5">
                     <p className="type-body font-bold text-foreground">
-                      {primary(stop.titleKo, stop.titleEn)}
+                      {stop.titleEn}
                     </p>
                     <p className="mt-g1 type-caption text-muted-foreground">
-                      {primary(stop.blurbKo, stop.blurbEn)}
+                      {stop.blurbEn}
                     </p>
                     {idx < segments.length && (
                       <p className="mt-g2 type-caption tabular-nums text-muted-foreground">
-                        {primary(
-                          `다음까지 직선 약 ${Math.round(segments[idx]!.distanceM)}m · 도보 약 ${segments[idx]!.walkMinutes}분`,
-                          `Next: ~${Math.round(segments[idx]!.distanceM)}m straight · ~${segments[idx]!.walkMinutes} min walk`,
-                        )}
+                        {`Next: ~${Math.round(segments[idx]!.distanceM)} m · ~${segments[idx]!.walkMinutes} min walk`}
                       </p>
                     )}
                   </div>
