@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Clock, Film, Info, MapPin, Map as MapIcon, Music, Ship, Ticket, Users } from "lucide-react";
+import { ChevronDown, Clock, Film, Info, MapPin, Map as MapIcon, Music, PlayCircle, Ship, Ticket, Users } from "lucide-react";
 import { TopUtilityBar } from "@/components/app/TopUtilityBar";
 import { AppButton } from "@/components/app/AppButton";
 import { useLanguage } from "@/i18n/LanguageContext";
@@ -65,6 +65,8 @@ type LiveItem = {
   timeRangeEn: string;
   actKo: string;
   actEn: string;
+  setlistKo: string[];
+  setlistEn: string[];
 };
 
 type OutdoorItem = CinemaItem | LiveItem;
@@ -114,20 +116,84 @@ function useOutdoorByDay() {
 
     const liveByIdx: Omit<LiveItem, "kind">[][] = [
       [
-        { startKey: "18:00", timeRangeKo: "18:00~18:50", timeRangeEn: "6:00–6:50 PM", actKo: "밴드 파란노을", actEn: "Band Blue Dusk" },
-        { startKey: "19:05", timeRangeKo: "19:05~19:55", timeRangeEn: "7:05–7:55 PM", actKo: "DJ Sola", actEn: "DJ Sola" },
+        {
+          startKey: "18:00",
+          timeRangeKo: "18:00~18:50",
+          timeRangeEn: "6:00–6:50 PM",
+          actKo: "밴드 파란노을",
+          actEn: "Band Blue Dusk",
+          setlistKo: ["벚꽃 엔딩", "한 페이지가 될 수 있게", "좋은 밤 좋은 꿈"],
+          setlistEn: ["Cherry Blossom Ending", "Time of Our Life", "Good Night Good Dream"],
+        },
+        {
+          startKey: "19:05",
+          timeRangeKo: "19:05~19:55",
+          timeRangeEn: "7:05–7:55 PM",
+          actKo: "DJ Sola",
+          actEn: "DJ Sola",
+          setlistKo: ["Seoul Night Drive", "Harbor Sunset Mix", "Late Tide Groove"],
+          setlistEn: ["Seoul Night Drive", "Harbor Sunset Mix", "Late Tide Groove"],
+        },
       ],
       [
-        { startKey: "18:30", timeRangeKo: "18:30~19:20", timeRangeEn: "6:30–7:20 PM", actKo: "스트리트 재즈 트리오", actEn: "Street jazz trio" },
-        { startKey: "19:30", timeRangeKo: "19:30~20:20", timeRangeEn: "7:30–8:20 PM", actKo: "어쿠스틱 듀오 ‘달빛’", actEn: "Acoustic duo “Moonlight”" },
+        {
+          startKey: "18:30",
+          timeRangeKo: "18:30~19:20",
+          timeRangeEn: "6:30–7:20 PM",
+          actKo: "스트리트 재즈 트리오",
+          actEn: "Street jazz trio",
+          setlistKo: ["Autumn Leaves", "Fly Me to the Moon", "Take Five"],
+          setlistEn: ["Autumn Leaves", "Fly Me to the Moon", "Take Five"],
+        },
+        {
+          startKey: "19:30",
+          timeRangeKo: "19:30~20:20",
+          timeRangeEn: "7:30–8:20 PM",
+          actKo: "어쿠스틱 듀오 ‘달빛’",
+          actEn: "Acoustic duo “Moonlight”",
+          setlistKo: ["밤편지", "주저하는 연인들을 위해", "너의 의미"],
+          setlistEn: ["Through the Night", "For Lovers Who Hesitate", "Meaning of You"],
+        },
       ],
       [
-        { startKey: "17:30", timeRangeKo: "17:30~18:20", timeRangeEn: "5:30–6:20 PM", actKo: "인디 밴드 ‘북두’", actEn: "Indie band “Bukdu”" },
-        { startKey: "18:35", timeRangeKo: "18:35~19:25", timeRangeEn: "6:35–7:25 PM", actKo: "플레이리스트 DJ 세트", actEn: "Playlist DJ set" },
+        {
+          startKey: "17:30",
+          timeRangeKo: "17:30~18:20",
+          timeRangeEn: "5:30–6:20 PM",
+          actKo: "인디 밴드 ‘북두’",
+          actEn: "Indie band “Bukdu”",
+          setlistKo: ["파도 위로", "노을 신호", "도시의 밤"],
+          setlistEn: ["Over the Wave", "Sunset Signal", "City at Night"],
+        },
+        {
+          startKey: "18:35",
+          timeRangeKo: "18:35~19:25",
+          timeRangeEn: "6:35–7:25 PM",
+          actKo: "플레이리스트 DJ 세트",
+          actEn: "Playlist DJ set",
+          setlistKo: ["Warmup House Mix", "Midnight Pop Edit", "Pier Closing Track"],
+          setlistEn: ["Warmup House Mix", "Midnight Pop Edit", "Pier Closing Track"],
+        },
       ],
       [
-        { startKey: "18:00", timeRangeKo: "18:00~18:50", timeRangeEn: "6:00–6:50 PM", actKo: "라이브 밴드 ‘해변’", actEn: "Live band “Beach”" },
-        { startKey: "19:00", timeRangeKo: "19:00~19:50", timeRangeEn: "7:00–7:50 PM", actKo: "DJ Sola", actEn: "DJ Sola" },
+        {
+          startKey: "18:00",
+          timeRangeKo: "18:00~18:50",
+          timeRangeEn: "6:00–6:50 PM",
+          actKo: "라이브 밴드 ‘해변’",
+          actEn: "Live band “Beach”",
+          setlistKo: ["나는 나비", "여행", "한강에서"],
+          setlistEn: ["I Am a Butterfly", "Trip", "At the Han River"],
+        },
+        {
+          startKey: "19:00",
+          timeRangeKo: "19:00~19:50",
+          timeRangeEn: "7:00–7:50 PM",
+          actKo: "DJ Sola",
+          actEn: "DJ Sola",
+          setlistKo: ["Ocean Pulse", "Neon Pier", "Last Ferry Home"],
+          setlistEn: ["Ocean Pulse", "Neon Pier", "Last Ferry Home"],
+        },
       ],
     ];
 
@@ -147,7 +213,13 @@ export default function EventScreen() {
   const navigate = useNavigate();
   const { primary } = useLanguage();
   const [tab, setTab] = useState<EventTab>("outdoor");
+  const [expandedBuskingKeys, setExpandedBuskingKeys] = useState<Record<string, boolean>>({});
   const outdoorByDay = useOutdoorByDay();
+
+  const openYoutubeSearch = (song: string, act: string) => {
+    const q = encodeURIComponent(`${song} ${act}`);
+    window.open(`https://www.youtube.com/results?search_query=${q}`, "_blank", "noopener,noreferrer");
+  };
 
   useEffect(() => {
     const st = location.state as { eventTab?: string } | undefined;
@@ -273,9 +345,11 @@ export default function EventScreen() {
                           </div>
                         );
                       }
+                      const liveKey = `${day.labelKo}-l-${item.startKey}-${item.actKo}`;
+                      const expanded = !!expandedBuskingKeys[liveKey];
                       return (
                         <div
-                          key={`${day.labelKo}-l-${item.startKey}-${item.actKo}`}
+                          key={liveKey}
                           className="rounded-xl border border-border bg-card p-g3 shadow-elevate-sm"
                         >
                           <div className="flex items-center gap-g2 mb-g2">
@@ -310,6 +384,52 @@ export default function EventScreen() {
                                   `${STAGE_EN} · ${OUTDOOR_VENUE_EN}`,
                                 )}
                               </dd>
+                            </div>
+                            <div className="pt-g1 border-t border-border/80">
+                              <button
+                                type="button"
+                                className="w-full inline-flex items-center justify-between gap-g2 rounded-lg border border-brand-royal/25 bg-brand-royal/[0.05] px-g3 py-g2 type-caption font-semibold text-brand-royal"
+                                onClick={() =>
+                                  setExpandedBuskingKeys((prev) => ({
+                                    ...prev,
+                                    [liveKey]: !prev[liveKey],
+                                  }))
+                                }
+                                aria-expanded={expanded}
+                              >
+                                <span>{primary("🎵 Setlist", "🎵 Setlist")}</span>
+                                <ChevronDown
+                                  className={cn(
+                                    "h-4 w-4 transition-transform",
+                                    expanded && "rotate-180",
+                                  )}
+                                />
+                              </button>
+                              {expanded && (
+                                <ul className="mt-g2 space-y-1 rounded-lg border border-border bg-secondary/30 px-g3 py-g2">
+                                  {item.setlistKo.map((song, idx) => (
+                                    <li key={`${liveKey}-${song}`}>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          openYoutubeSearch(
+                                            primary(song, item.setlistEn[idx] ?? song),
+                                            primary(item.actKo, item.actEn),
+                                          )
+                                        }
+                                        className="w-full rounded-md px-g2 py-1.5 transition hover:bg-brand-royal/10"
+                                      >
+                                        <span className="flex items-center justify-between gap-g2">
+                                          <span className="type-caption text-foreground">
+                                            {idx + 1}. {primary(song, item.setlistEn[idx] ?? song)}
+                                          </span>
+                                          <PlayCircle className="h-4 w-4 shrink-0 text-brand-royal" />
+                                        </span>
+                                      </button>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
                             </div>
                           </dl>
                         </div>
