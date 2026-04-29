@@ -229,7 +229,7 @@ export function DiningStoreDetailScroll({
         {(menuExpanded ? store.menu : store.menu.slice(0, 5)).map((m) => (
           <div key={m.name} className="flex items-center justify-between gap-g2">
             <div className="flex min-w-0 items-center gap-g2">
-              <span className="type-body truncate">{m.name}</span>
+              <span className="type-body truncate">{primary(m.name, m.nameEn)}</span>
               {m.popular && (
                 <span className="shrink-0 rounded-pill bg-brand-coral/15 px-g2 py-px text-[10px] font-bold text-brand-coral">
                   {primary("인기", "Popular")}

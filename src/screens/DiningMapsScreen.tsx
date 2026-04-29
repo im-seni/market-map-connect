@@ -53,17 +53,18 @@ const FERRY_TERMINAL_PLACES_QUERY = "인천항연안여객터미널";
 type CategoryNode = {
   emoji: string;
   label: string;
+  labelEn: string;
   storeIds: string[];
   side: "upper" | "lower";
   anchorT: number;
   forcedLevel?: "low" | "moderate" | "busy";
 };
 const CATEGORY_NODES: CategoryNode[] = [
-  { emoji: "🐟", label: "어시장", storeIds: ["9", "10", "11", "12", "13"], forcedLevel: "moderate" as const, side: "lower" as const, anchorT: 0.12 },
-  { emoji: "🦀", label: "포장마차", storeIds: ["5", "14"], side: "lower" as const, anchorT: 0.2 },
-  { emoji: "🧋", label: "음료/스낵", storeIds: ["2", "3"], side: "lower" as const, anchorT: 0.5 },
-  { emoji: "🍭", label: "디저트", storeIds: ["4", "6", "8"], side: "lower" as const, anchorT: 0.62 },
-  { emoji: "🍢", label: "간식", storeIds: ["1", "7"], side: "lower" as const, anchorT: 0.93 },
+  { emoji: "🐟", label: "어시장", labelEn: "Fish Market", storeIds: ["9", "10", "11", "12", "13"], forcedLevel: "moderate" as const, side: "lower" as const, anchorT: 0.12 },
+  { emoji: "🦀", label: "포장마차", labelEn: "Street Stalls", storeIds: ["5", "14"], side: "lower" as const, anchorT: 0.2 },
+  { emoji: "🧋", label: "음료", labelEn: "Drinks", storeIds: ["2", "3"], side: "lower" as const, anchorT: 0.5 },
+  { emoji: "🍭", label: "디저트", labelEn: "Dessert", storeIds: ["4", "6", "8"], side: "lower" as const, anchorT: 0.62 },
+  { emoji: "🍢", label: "간식", labelEn: "Snacks", storeIds: ["1", "7"], side: "lower" as const, anchorT: 0.93 },
 ] as const;
 const DETAIL_ONLY_ZOOM_LEVEL = 2; // 기본(level 4)에서 2번 확대하면 level 2
 const ROAD_SIDE_INVERT = true; // 실제 지도 체감 방향과 수학 방향이 반대일 때 보정
@@ -1556,7 +1557,7 @@ export default function DiningMapsScreen() {
                 <div className="space-y-g3 shrink-0 border-b border-border px-g4 pb-g3">
                   <div className="flex items-center gap-g2">
                     <span className="text-2xl">{activeCategory.emoji}</span>
-                    <h3 className="type-title">{activeCategory.label}</h3>
+                    <h3 className="type-title">{primary(activeCategory.label, activeCategory.labelEn)}</h3>
                   </div>
                   <div className="flex items-center gap-g2 overflow-x-auto no-scrollbar pb-1">
                     <button
@@ -1951,7 +1952,7 @@ export default function DiningMapsScreen() {
                         onChange={() => toggleReviewMenuDraft(m.name)}
                         className="mt-0.5 h-4 w-4 shrink-0 rounded border-border text-brand-royal focus:ring-2 focus:ring-brand-royal/30"
                       />
-                      <span className="type-caption leading-snug text-foreground">{m.name}</span>
+                      <span className="type-caption leading-snug text-foreground">{primary(m.name, m.nameEn)}</span>
                     </label>
                   ))}
                 </div>
