@@ -3,6 +3,7 @@ import { AppButton } from "@/components/app/AppButton";
 import { PhoneFrame } from "@/components/app/PhoneFrame";
 import { ThemeToggle } from "@/components/app/ThemeToggle";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { cn } from "@/lib/utils";
 
 function GoogleGlyph() {
@@ -33,7 +34,11 @@ function KakaoGlyph() {
 export default function LoginScreen() {
   const navigate = useNavigate();
   const { primary } = useLanguage();
-  const goHome = () => navigate("/map");
+  const { session, signOut } = useSupabaseAuth();
+  const goHome = async () => {
+    if (session) await signOut();
+    navigate("/map");
+  };
 
   const socials: { name: string; bg: string; ring?: string; node: JSX.Element }[] = [
     { name: "Kakao", bg: "bg-[#FEE500]", node: <KakaoGlyph /> },
