@@ -20,9 +20,12 @@ interface SupabaseAuthContextValue {
     email: string,
     password: string,
     meta: { display_name: string; marketing_opt_in: boolean },
-  ) => Promise<{ error: string | null; taken?: boolean }>;
+  ) => Promise<{ error: string | null; emailTaken?: boolean; nameTaken?: boolean }>;
   signOut: () => Promise<void>;
   deleteAccount: () => Promise<{ error: string | null }>;
+  resetPassword: (email: string) => Promise<{ error: string | null }>;
+  lookupEmailHint: (displayName: string) => Promise<{ hints: string[]; error: string | null }>;
+  updatePassword: (password: string) => Promise<{ error: string | null }>;
 }
 
 const SupabaseAuthContext = createContext<SupabaseAuthContextValue | null>(null);
@@ -66,7 +69,23 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       email: string,
       password: string,
       meta: { display_name: string; marketing_opt_in: boolean },
-    ): Promise<{ error: string | null; taken?: boolean }> => {
+    ): Promise<{ error: string | null; emailTaken?: boolean; nameTaken?: boolean }> => {
+      const displayName = meta.display_name.trim();
+      const { data: nameAvailable, error: nameCheckError } = await supabase.rpc(
+        "is_display_name_available",
+        { p_display_name: displayName },
+      );
+      if (nameCheckError) {
+        console.error("[signUp] name check:", nameCheckError.message, nameCheckError.code);
+        return { error: nameCheckError.message };
+      }
+      if (nameAvailable === false) {
+        return {
+          error: "Display name is already taken.",
+          nameTaken: true,
+        };
+      }
+
       // updateUser는 "이메일 변경"으로 처리되어 Confirm email 설정과 무관하게 인증 요구 → 항상 signUp 사용
       // 익명 세션 먼저 종료
       await supabase.auth.signOut();
@@ -75,15 +94,18 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
         email,
         password,
         options: {
-          data: { display_name: meta.display_name, marketing_opt_in: meta.marketing_opt_in },
+          data: { display_name: displayName, marketing_opt_in: meta.marketing_opt_in },
         },
       });
       if (error) {
         console.error("[signUp] error:", error.message, error.status);
-        const taken =
+        const emailTaken =
           error.message.toLowerCase().includes("already registered") ||
           error.message.toLowerCase().includes("already been registered");
-        return { error: error.message, taken };
+        const nameTaken =
+          error.message.toLowerCase().includes("display_name") ||
+          error.message.toLowerCase().includes("duplicate key");
+        return { error: error.message, emailTaken, nameTaken };
       }
       return { error: null };
     },
@@ -101,12 +123,68 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message ?? null };
   }, []);
 
+  const resetPassword = useCallback(async (email: string): Promise<{ error: string | null }> => {
+    const redirectTo = `${window.location.origin}/auth/reset-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo });
+    if (error) {
+      console.error("[resetPassword] error:", error.message, error.status);
+      return { error: error.message };
+    }
+    return { error: null };
+  }, []);
+
+  const lookupEmailHint = useCallback(
+    async (displayName: string): Promise<{ hints: string[]; error: string | null }> => {
+      const { data, error } = await supabase.rpc("lookup_email_hint", {
+        p_display_name: displayName.trim(),
+      });
+      if (error) {
+        console.error("[lookupEmailHint] error:", error.message, error.code);
+        return { hints: [], error: error.message };
+      }
+      const rows = Array.isArray(data) ? data : [];
+      const hints = rows
+        .map((row) => {
+          if (typeof row === "string") return row;
+          if (row && typeof row === "object" && "email_hint" in row) {
+            return (row as { email_hint: string | null }).email_hint;
+          }
+          return null;
+        })
+        .filter((h): h is string => typeof h === "string" && h.length > 0);
+      return { hints, error: null };
+    },
+    [],
+  );
+
+  const updatePassword = useCallback(async (password: string): Promise<{ error: string | null }> => {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) {
+      console.error("[updatePassword] error:", error.message, error.status);
+      return { error: error.message };
+    }
+    return { error: null };
+  }, []);
+
   const user = session?.user ?? null;
   const isAnonymous = user?.is_anonymous ?? true;
 
   return (
     <SupabaseAuthContext.Provider
-      value={{ session, user, loading, isAnonymous, sessionKey, signIn, signUp, signOut, deleteAccount }}
+      value={{
+        session,
+        user,
+        loading,
+        isAnonymous,
+        sessionKey,
+        signIn,
+        signUp,
+        signOut,
+        deleteAccount,
+        resetPassword,
+        lookupEmailHint,
+        updatePassword,
+      }}
     >
       {children}
     </SupabaseAuthContext.Provider>

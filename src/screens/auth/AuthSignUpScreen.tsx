@@ -22,11 +22,12 @@ export default function AuthSignUpScreen() {
   const [marketing, setMarketing] = useState(false);
   const [triedSubmit, setTriedSubmit] = useState(false);
   const [emailTaken, setEmailTaken] = useState(false);
+  const [nameTaken, setNameTaken] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const nameError = useMemo(
-    () => triedSubmit && !displayName.trim(),
-    [triedSubmit, displayName],
+    () => triedSubmit && (!displayName.trim() || nameTaken),
+    [triedSubmit, displayName, nameTaken],
   );
 
   const emailInputError = useMemo(
@@ -99,14 +100,21 @@ export default function AuthSignUpScreen() {
   }, [termsError, primary]);
 
   const displayNameMessage = useMemo(() => {
-    if (!triedSubmit || displayName.trim()) return null;
-    return primary("닉네임을 입력해 주세요.", "Enter your display name.");
-  }, [triedSubmit, displayName, primary]);
+    if (!triedSubmit) return null;
+    if (nameTaken) {
+      return primary("이미 사용 중인 닉네임이에요.", "This display name is already taken.");
+    }
+    if (!displayName.trim()) {
+      return primary("닉네임을 입력해 주세요.", "Enter your display name.");
+    }
+    return null;
+  }, [triedSubmit, displayName, nameTaken, primary]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setTriedSubmit(true);
     setEmailTaken(false);
+    setNameTaken(false);
 
     if (!displayName.trim()) return;
     if (!email.trim() || !isValidEmailFormat(email)) return;
@@ -116,13 +124,20 @@ export default function AuthSignUpScreen() {
     if (!agreeTerms) return;
 
     setSubmitting(true);
-    const { error, taken } = await signUp(email.trim(), password, {
+    const { error, emailTaken: emailDup, nameTaken: nameDup } = await signUp(email.trim(), password, {
       display_name: displayName.trim(),
       marketing_opt_in: marketing,
     });
     setSubmitting(false);
 
-    if (taken || error?.toLowerCase().includes("already")) { setEmailTaken(true); return; }
+    if (nameDup) {
+      setNameTaken(true);
+      return;
+    }
+    if (emailDup || error?.toLowerCase().includes("already registered")) {
+      setEmailTaken(true);
+      return;
+    }
     if (error) return;
     navigate("/auth/login");
   };
@@ -155,10 +170,17 @@ export default function AuthSignUpScreen() {
             value={displayName}
             onChange={(e) => {
               setDisplayName(e.target.value);
+              setNameTaken(false);
             }}
             className={cn("rounded-chip h-11", nameError && inputErrorRing)}
             placeholder={primary("앱에서 보여질 이름", "Name shown in the app")}
           />
+          <p className="type-caption text-muted-foreground">
+            {primary(
+              "닉네임은 중복할 수 없어요. (이메일 찾기에 사용됩니다)",
+              "Display names must be unique (used to recover your email).",
+            )}
+          </p>
         </div>
         <div className="space-y-g2">
           <div className="flex flex-wrap items-baseline justify-between gap-x-g2 gap-y-1">

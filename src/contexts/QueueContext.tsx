@@ -89,6 +89,8 @@ export function QueueProvider({ children }: { children: ReactNode }) {
   const [queueBellDot, setQueueBellDot] = useState(false);
   const [queueInbox, setQueueInbox] = useState<QueueInAppNotification[]>([]);
   const lastTickRef = useRef<number>(Date.now());
+  const ticketsRef = useRef<QueueTicket[]>(tickets);
+  ticketsRef.current = tickets;
 
   const acknowledgeQueueBell = useCallback(() => setQueueBellDot(false), []);
 
@@ -179,44 +181,64 @@ export function QueueProvider({ children }: { children: ReactNode }) {
     }
   }, [storageKey, tickets]);
 
-  // Recompute queue by wall-clock time (minute based) + 입장 차례(0분·앞 0명) 10분 이상이면 자동 제거
+  // Recompute queue by wall-clock time (minute based) + 입장 차례(0분·앞 0명) 5분 이상이면 자동 제거
   useEffect(() => {
-    const STALE_TURN_MINUTES = 10;
+    const STALE_TURN_MINUTES = 5;
     const id = window.setInterval(() => {
       const now = Date.now();
       lastTickRef.current = now;
-      setTickets((prev) => {
-        if (prev.length === 0) return prev;
-        const withProgress = prev.map((t) => {
-          const elapsedMinutes = Math.floor((now - t.joinedAt) / 60000);
-          const newEta = Math.max(0, t.initialEtaMinutes - elapsedMinutes);
-          const progressRatio =
-            t.initialEtaMinutes > 0 ? 1 - newEta / t.initialEtaMinutes : 1;
-          const newAhead = Math.max(0, Math.ceil(t.initialPeopleAhead * (1 - progressRatio)));
-          if (newAhead !== t.peopleAhead || newEta !== t.etaMinutes) {
-            return { ...t, peopleAhead: newAhead, etaMinutes: newEta };
-          }
-          return t;
-        });
 
-        const withoutStale = withProgress.filter((t) => {
-          if (t.etaMinutes !== 0 || t.peopleAhead !== 0) return true;
-          const elapsedMinutes = Math.floor((now - t.joinedAt) / 60000);
-          const minutesSinceEtaHitZero =
-            t.initialEtaMinutes > 0
-              ? Math.max(0, elapsedMinutes - t.initialEtaMinutes)
-              : elapsedMinutes;
-          return minutesSinceEtaHitZero < STALE_TURN_MINUTES;
-        });
+      const current = ticketsRef.current;
+      if (current.length === 0) return;
 
-        if (withoutStale.length !== withProgress.length) {
-          return withoutStale;
+      const withProgress = current.map((t) => {
+        const elapsedMinutes = Math.floor((now - t.joinedAt) / 60000);
+        const newEta = Math.max(0, t.initialEtaMinutes - elapsedMinutes);
+        const progressRatio =
+          t.initialEtaMinutes > 0 ? 1 - newEta / t.initialEtaMinutes : 1;
+        const newAhead = Math.max(0, Math.ceil(t.initialPeopleAhead * (1 - progressRatio)));
+        if (newAhead !== t.peopleAhead || newEta !== t.etaMinutes) {
+          return { ...t, peopleAhead: newAhead, etaMinutes: newEta };
         }
-        const mapChanged = withProgress.some(
-          (t, i) => t.etaMinutes !== prev[i]!.etaMinutes || t.peopleAhead !== prev[i]!.peopleAhead,
-        );
-        return mapChanged ? withProgress : prev;
+        return t;
       });
+
+      const cancelled: QueueTicket[] = [];
+      const withoutStale = withProgress.filter((t) => {
+        if (t.etaMinutes !== 0 || t.peopleAhead !== 0) return true;
+        const elapsedMinutes = Math.floor((now - t.joinedAt) / 60000);
+        const minutesSinceEtaHitZero =
+          t.initialEtaMinutes > 0
+            ? Math.max(0, elapsedMinutes - t.initialEtaMinutes)
+            : elapsedMinutes;
+        if (minutesSinceEtaHitZero >= STALE_TURN_MINUTES) {
+          cancelled.push(t);
+          return false;
+        }
+        return true;
+      });
+
+      if (cancelled.length > 0) {
+        for (const t of cancelled) {
+          const store = stores.find((s) => s.id === t.vendorId);
+          const name = store?.name ?? "가게";
+          const nameEn = store?.nameEn ?? "vendor";
+          toast(`${name} 줄서기가 자동 취소됐어요`, {
+            description: `입장 차례 후 ${STALE_TURN_MINUTES}분이 지나 취소되었습니다. · ${nameEn} reservation expired after ${STALE_TURN_MINUTES} min.`,
+            duration: 5000,
+            position: "top-center",
+            id: `auto-cancel-${t.vendorId}-${t.joinedAt}`,
+            classNames: { toast: "text-left w-[min(100vw-2rem,24rem)]" },
+          });
+        }
+        setTickets(withoutStale);
+        return;
+      }
+
+      const mapChanged = withProgress.some(
+        (t, i) => t.etaMinutes !== current[i]!.etaMinutes || t.peopleAhead !== current[i]!.peopleAhead,
+      );
+      if (mapChanged) setTickets(withProgress);
     }, 1000);
     return () => window.clearInterval(id);
   }, []);

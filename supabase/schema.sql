@@ -18,6 +18,10 @@ create table if not exists public.profiles (
 
 create index if not exists profiles_email_idx on public.profiles (email);
 
+create unique index if not exists profiles_display_name_unique_idx
+  on public.profiles (lower(trim(display_name)))
+  where display_name is not null and trim(display_name) <> '';
+
 alter table public.profiles enable row level security;
 
 create policy "profiles: select own"

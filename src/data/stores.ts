@@ -2,7 +2,7 @@ export type CrowdLevel = "low" | "moderate" | "busy";
 import { getNowInKst } from "@/lib/timeKst";
 
 export type VendorStatus = "open" | "pre_open" | "closed" | "sold_out";
-export type StoreType = "food_court" | "food_truck" | "restaurant";
+export type StoreType = "food_court" | "food_truck" | "restaurant" | "bakery";
 
 export interface MenuItem {
   name: string;
@@ -56,6 +56,8 @@ export interface Store {
   hasCoupon?: boolean;
   /** 층 표기 (예: B1, 2F) — 주소와 함께 표시 */
   floorLabel?: { ko: string; en: string };
+  /** 팝업 베이커리 초기 재고 수량 — 시간 기반 감소 시뮬레이션에 사용 */
+  stockCount?: number;
 }
 
 export function inferCrowdLevel(s: Store): CrowdLevel {
@@ -107,6 +109,23 @@ export function getVendorStatus(s: Store, nowKst: Date = getNowInKst()): VendorS
 
 export function storeById(id: string): Store | undefined {
   return stores.find((x) => x.id === id);
+}
+
+/** 팝업 베이커리 남은 재고 — 18:00 오픈, 21:00 마감 기준 선형 시뮬레이션 */
+export function getBakeryStock(store: Store): number | null {
+  if (store.stockCount == null) return null;
+  const now = getNowInKst();
+  const h = now.getHours();
+  const m = now.getMinutes();
+  if (h < 18) return store.stockCount;
+  if (h >= 21) return 0;
+  const elapsedMin = (h - 18) * 60 + m;
+  const daySeed = now.getDate() % 5;
+  const depleted = Math.min(
+    store.stockCount,
+    Math.floor((store.stockCount * (elapsedMin + daySeed * 2)) / 185),
+  );
+  return Math.max(0, store.stockCount - depleted);
 }
 
 export const stores: Store[] = [
@@ -545,6 +564,40 @@ export const stores: Store[] = [
       { name: "팥빙수", nameEn: "Red Bean Shaved Ice", price: 8000, description: "여름 한정", descriptionEn: "Summer only" },
     ],
     reviews: [{ id: "r13-1", userName: "김도윤", rating: 4, comment: "2층이라 한산해요.", commentEn: "Quiet on 2F.", menuItem: "아메리카노", date: "2026-04-26" }],
+  },
+  {
+    id: "16",
+    name: "인천안스 베이커리",
+    nameEn: "Incheon Ans Bakery",
+    category: "팝업 베이커리",
+    categoryEn: "Popup Bakery",
+    storeType: "bakery",
+    emoji: "🥐",
+    tagline: { ko: "인천 연안부두 깜짝 팝업", en: "Surprise popup at Yeonan Pier" },
+    description: "인천의 유명 베이커리 '안스 베이커리'가 야시장 팝업으로 찾아옵니다. 당일 구운 빵을 한정 수량으로 선보입니다.",
+    descriptionEn: "Incheon's beloved Ans Bakery pops up at the night market with a limited daily selection of freshly baked goods.",
+    hours: { ko: "18:00 – 21:00", en: "6 PM – 9 PM" },
+    rating: 4.9,
+    waitTime: 5,
+    lat: 37.4733,
+    lng: 126.6110,
+    x: 55,
+    y: 40,
+    queueCount: 0,
+    stockCount: 50,
+    crowdLevel: "low",
+    vibeTags: ["팝업", "한정수량", "베이커리"],
+    vibeTagsEn: ["Popup", "Limited", "Bakery"],
+    menu: [
+      { name: "크루아상", nameEn: "Croissant", price: 4500, description: "버터 결의 정석", descriptionEn: "Classic layered butter croissant", popular: true, signature: true },
+      { name: "소금빵", nameEn: "Salt Bread", price: 3800, description: "고소한 버터 소금빵", descriptionEn: "Buttery salted roll", popular: true },
+      { name: "앙버터", nameEn: "Red Bean Butter", price: 4000, description: "단팥과 버터의 조화", descriptionEn: "Sweet red bean and butter", popular: true },
+      { name: "바게트", nameEn: "Baguette", price: 5000, description: "겉바속촉 정통 바게트", descriptionEn: "Crispy French baguette" },
+    ],
+    reviews: [
+      { id: "r16-1", userName: "정소영", rating: 5, comment: "크루아상이 진짜 파리 느낌이에요! 팝업인데 이 퀄리티라니.", commentEn: "The croissant tastes like Paris! Incredible quality for a popup.", menuItem: "크루아상", date: "2026-05-20" },
+      { id: "r16-2", userName: "이민혁", rating: 5, comment: "소금빵 하나 더 사고 싶었는데 품절됐어요 ㅠ 일찍 오세요!", commentEn: "Tried to buy another salt bread but it was sold out. Come early!", menuItem: "소금빵", date: "2026-05-21" },
+    ],
   },
   {
     id: "15",

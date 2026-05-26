@@ -1,11 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ChevronDown, Clock, Film, Info, MapPin, Map as MapIcon, Music, PlayCircle, Ship, Ticket, Users } from "lucide-react";
+import { ChevronDown, Clock, Info, Map as MapIcon, PlayCircle, Ship, Ticket, Users } from "lucide-react";
 import { TopUtilityBar } from "@/components/app/TopUtilityBar";
 import { AppButton } from "@/components/app/AppButton";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { getNowInKst } from "@/lib/timeKst";
 import { cn } from "@/lib/utils";
+import logoCharacter from "@/assets/logo/character.png";
+
+// Eagerly load any poster images dropped into src/assets/posters/
+const _posterModules = import.meta.glob("/src/assets/posters/*.{jpg,jpeg,png,webp}", {
+  eager: true,
+  import: "default",
+}) as Record<string, string>;
+function getPoster(filename: string): string | undefined {
+  return _posterModules[`/src/assets/posters/${filename}`];
+}
 
 type EventTab = "outdoor" | "yacht";
 
@@ -56,6 +66,7 @@ type CinemaItem = {
   timeRangeEn: string;
   titleKo: string;
   titleEn: string;
+  poster?: string;
 };
 
 type LiveItem = {
@@ -83,6 +94,7 @@ function useOutdoorByDay() {
           timeRangeEn: "8:30–10:40 PM",
           titleKo: "범죄도시 4",
           titleEn: "Crime City 4",
+          poster: "crime-city-4.jpg",
         },
       ],
       [
@@ -92,6 +104,7 @@ function useOutdoorByDay() {
           timeRangeEn: "8:45–10:45 PM",
           titleKo: "듄: 파트 2",
           titleEn: "Dune: Part Two",
+          poster: "dune-part-2.jpg",
         },
       ],
       [
@@ -101,15 +114,17 @@ function useOutdoorByDay() {
           timeRangeEn: "8:15–10:45 PM",
           titleKo: "인터스텔라",
           titleEn: "Interstellar",
+          poster: "interstellar.jpg",
         },
       ],
       [
         {
           startKey: "20:15",
-          timeRangeKo: "20:15~21:50",
-          timeRangeEn: "8:15–9:50 PM",
-          titleKo: "인천의 밤 (다큐)",
-          titleEn: "Incheon Nights (doc.)",
+          timeRangeKo: "20:15~22:05",
+          timeRangeEn: "8:15–10:05 PM",
+          titleKo: "비긴어게인",
+          titleEn: "Begin Again",
+          poster: "begin-again.jpg",
         },
       ],
     ];
@@ -124,15 +139,6 @@ function useOutdoorByDay() {
           actEn: "Band Blue Dusk",
           setlistKo: ["벚꽃 엔딩", "한 페이지가 될 수 있게", "좋은 밤 좋은 꿈"],
           setlistEn: ["Cherry Blossom Ending", "Time of Our Life", "Good Night Good Dream"],
-        },
-        {
-          startKey: "19:05",
-          timeRangeKo: "19:05~19:55",
-          timeRangeEn: "7:05–7:55 PM",
-          actKo: "DJ Sola",
-          actEn: "DJ Sola",
-          setlistKo: ["Seoul Night Drive", "Harbor Sunset Mix", "Late Tide Groove"],
-          setlistEn: ["Seoul Night Drive", "Harbor Sunset Mix", "Late Tide Groove"],
         },
       ],
       [
@@ -200,9 +206,10 @@ function useOutdoorByDay() {
     return dates.map((date, idx) => {
       const movies: OutdoorItem[] = (cinemaByIdx[idx] ?? []).map((c) => ({ kind: "cinema" as const, ...c }));
       const lives: OutdoorItem[] = (liveByIdx[idx] ?? []).map((c) => ({ kind: "live" as const, ...c }));
-      const items = [...movies, ...lives].sort(
-        (a, b) => timeToMin(a.startKey) - timeToMin(b.startKey),
-      );
+      const items = [...movies, ...lives].sort((a, b) => {
+        if (a.kind !== b.kind) return a.kind === "cinema" ? -1 : 1;
+        return timeToMin(a.startKey) - timeToMin(b.startKey);
+      });
       return { date, labelKo: formatDayBadge(date, true), labelEn: formatDayBadge(date, false), items };
     });
   }, []);
@@ -243,9 +250,41 @@ export default function EventScreen() {
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-background">
       <TopUtilityBar />
-      <div className="min-h-0 flex-1 overflow-y-auto px-g4 py-g4">
-        <h1 className="type-title font-bold text-foreground">{primary("이벤트", "Events")}</h1>
-        <div className="mt-g4 -mx-g4 border-b border-border bg-background">
+      <div className="min-h-0 flex-1 overflow-y-auto px-g4 pt-0 pb-g4">
+        {/* Hero banner — tab-specific */}
+        {tab === "outdoor" ? (
+          <div className="-mx-g4 relative overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 px-g4 pt-g4 pb-g5">
+            <span aria-hidden className="pointer-events-none absolute left-5 top-2 text-base text-white/25 select-none">✦</span>
+            <span aria-hidden className="pointer-events-none absolute right-28 top-4 text-sm text-white/20 select-none">★</span>
+            <span aria-hidden className="pointer-events-none absolute bottom-3 left-14 text-xs text-white/15 select-none">✦</span>
+            <div className="flex items-center justify-between gap-g3">
+              <div className="min-w-0">
+                <p className="type-caption font-semibold tracking-wide text-indigo-300">Moonlight Port Night Market 🌙</p>
+                <h1 className="type-title font-bold text-white mt-g1">
+                  {primary("오늘의 이벤트", "Tonight's Events")}
+                </h1>
+              </div>
+              <img src={logoCharacter} alt="" aria-hidden className="h-20 w-20 shrink-0 object-contain drop-shadow-lg" />
+            </div>
+          </div>
+        ) : (
+          <div className="-mx-g4 relative overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-cyan-900 px-g4 pt-g4 pb-g5">
+            <span aria-hidden className="pointer-events-none absolute left-4 top-3 text-lg text-white/20 select-none">🌊</span>
+            <span aria-hidden className="pointer-events-none absolute right-8 bottom-3 text-base text-white/20 select-none">🌊</span>
+            <span aria-hidden className="pointer-events-none absolute right-24 top-2 text-xs text-white/15 select-none">⚓</span>
+            <div className="flex items-center justify-between gap-g3">
+              <div className="min-w-0">
+                <p className="type-caption font-semibold tracking-wide text-cyan-300">Moonlight Port Night Market ⛵</p>
+                <h1 className="type-title font-bold text-white mt-g1">
+                  {primary("미니 요트 크루즈", "Mini Yacht Cruise")}
+                </h1>
+              </div>
+              <div aria-hidden className="flex h-20 w-20 shrink-0 items-center justify-center text-5xl drop-shadow-lg select-none">⛵</div>
+            </div>
+          </div>
+        )}
+        {/* Tab bar */}
+        <div className="sticky top-0 z-10 -mx-g4 border-b border-border bg-background">
           <div className="flex px-g4">
             <button
               type="button"
@@ -303,45 +342,49 @@ export default function EventScreen() {
                   <div className="space-y-g2">
                     {day.items.map((item) => {
                       if (item.kind === "cinema") {
+                        const posterUrl = item.poster ? getPoster(item.poster) : undefined;
                         return (
                           <div
                             key={`${day.labelKo}-c-${item.startKey}-${item.titleKo}`}
-                            className="rounded-xl border border-border bg-card p-g3 shadow-elevate-sm"
+                            className="rounded-xl border border-border border-l-4 border-l-purple-400 bg-card p-g3 shadow-elevate-sm"
                           >
-                            <div className="flex items-center gap-g2 mb-g2">
-                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand-royal/12 border border-brand-royal/25">
-                                <Film className="h-3.5 w-3.5 text-brand-royal" />
-                              </div>
-                              <span className="type-caption font-semibold text-foreground">
-                                {primary("야외 영화", "Outdoor film")}
+                            <div className="mb-g2">
+                              <span className="inline-flex items-center rounded-full bg-purple-400/15 px-2.5 py-0.5 text-[10px] font-semibold text-purple-600 dark:text-purple-300">
+                                {primary("야외영화", "Outdoor film")}
                               </span>
                             </div>
-                            <dl className="space-y-g2">
-                              <div className="flex items-start justify-between gap-g3">
-                                <dt className="type-caption text-muted-foreground shrink-0">{primary("상영작", "Film")}</dt>
-                                <dd className="type-body font-semibold text-foreground text-right min-w-0">
-                                  {primary(item.titleKo, item.titleEn)}
-                                </dd>
-                              </div>
-                              <div className="flex items-baseline justify-between gap-g3">
-                                <dt className="type-caption text-muted-foreground shrink-0">{primary("시간", "Time")}</dt>
-                                <dd className="type-body font-bold tabular-nums text-foreground text-right">
-                                  {primary(item.timeRangeKo, item.timeRangeEn)}
-                                </dd>
-                              </div>
-                              <div className="flex items-start justify-between gap-g3 pt-g1 border-t border-border/80">
-                                <dt className="type-caption text-muted-foreground shrink-0 flex items-center gap-1">
-                                  <MapPin className="h-3.5 w-3.5" aria-hidden />
-                                  {primary("위치", "Location")}
-                                </dt>
-                                <dd className="type-caption text-foreground text-right">
-                                  {primary(
-                                    `${SCREEN_KO} · ${OUTDOOR_VENUE_KO}`,
-                                    `${SCREEN_EN} · ${OUTDOOR_VENUE_EN}`,
-                                  )}
-                                </dd>
-                              </div>
-                            </dl>
+                            <div className="flex gap-g3">
+                              {posterUrl && (
+                                <img
+                                  src={posterUrl}
+                                  alt=""
+                                  aria-hidden
+                                  className="w-[4.5rem] h-[6.5rem] rounded-md object-cover shrink-0 shadow-sm"
+                                />
+                              )}
+                              <dl className="flex-1 min-w-0 flex flex-col">
+                                <div className="space-y-g2">
+                                  <div className="flex items-start justify-between gap-g2">
+                                    <dt className="type-caption text-muted-foreground shrink-0">{primary("상영작", "Film")}</dt>
+                                    <dd className="type-caption font-semibold text-foreground text-right min-w-0">
+                                      {primary(item.titleKo, item.titleEn)}
+                                    </dd>
+                                  </div>
+                                  <div className="flex items-baseline justify-between gap-g2">
+                                    <dt className="type-caption text-muted-foreground shrink-0">{primary("시간", "Time")}</dt>
+                                    <dd className="type-caption font-bold tabular-nums text-foreground text-right">
+                                      {primary(item.timeRangeKo, item.timeRangeEn)}
+                                    </dd>
+                                  </div>
+                                </div>
+                                <div className="mt-g3 flex items-start justify-between gap-g2 pt-g1 border-t border-border/80">
+                                  <dt className="type-caption text-muted-foreground shrink-0">{primary("위치", "Location")}</dt>
+                                  <dd className="type-caption text-foreground text-right">
+                                    {primary(`${SCREEN_KO} · ${OUTDOOR_VENUE_KO}`, `${SCREEN_EN} · ${OUTDOOR_VENUE_EN}`)}
+                                  </dd>
+                                </div>
+                              </dl>
+                            </div>
                           </div>
                         );
                       }
@@ -350,34 +393,28 @@ export default function EventScreen() {
                       return (
                         <div
                           key={liveKey}
-                          className="rounded-xl border border-border bg-card p-g3 shadow-elevate-sm"
+                          className="rounded-xl border border-border border-l-4 border-l-amber-400 bg-card p-g3 shadow-elevate-sm"
                         >
-                          <div className="flex items-center gap-g2 mb-g2">
-                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand-royal/12 border border-brand-royal/25">
-                              <Music className="h-3.5 w-3.5 text-brand-royal" />
-                            </div>
-                            <span className="type-caption font-semibold text-foreground">
+                          <div className="mb-g2">
+                            <span className="inline-flex items-center rounded-full bg-amber-400/15 px-2.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300">
                               {primary("버스킹", "Busking")}
                             </span>
                           </div>
                           <dl className="space-y-g2">
                             <div className="flex items-baseline justify-between gap-g3">
                               <dt className="type-caption text-muted-foreground shrink-0">{primary("시간", "Time")}</dt>
-                              <dd className="type-body font-bold tabular-nums text-foreground text-right">
+                              <dd className="type-caption font-bold tabular-nums text-foreground text-right">
                                 {primary(item.timeRangeKo, item.timeRangeEn)}
                               </dd>
                             </div>
                             <div className="flex items-start justify-between gap-g3">
                               <dt className="type-caption text-muted-foreground shrink-0">{primary("출연", "Act")}</dt>
-                              <dd className="type-body font-semibold text-foreground text-right min-w-0">
+                              <dd className="type-caption font-semibold text-foreground text-right min-w-0">
                                 {primary(item.actKo, item.actEn)}
                               </dd>
                             </div>
                             <div className="flex items-start justify-between gap-g3 pt-g1 border-t border-border/80">
-                              <dt className="type-caption text-muted-foreground shrink-0 flex items-center gap-1">
-                                <MapPin className="h-3.5 w-3.5" aria-hidden />
-                                {primary("위치", "Location")}
-                              </dt>
+                              <dt className="type-caption text-muted-foreground shrink-0">{primary("위치", "Location")}</dt>
                               <dd className="type-caption text-foreground text-right">
                                 {primary(
                                   `${STAGE_KO} · ${OUTDOOR_VENUE_KO}`,

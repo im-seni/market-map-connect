@@ -9,7 +9,8 @@ import { sortedAnnouncements } from "@/data/announcements";
 import { useCoupons } from "@/contexts/CouponsContext";
 import { stores } from "@/data/stores";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { Clock, MapPin, Sparkles } from "lucide-react";
+import { Clock, MapPin } from "lucide-react";
+import logoCharacter from "@/assets/logo/character.png";
 
 export default function HomeScreen() {
   const navigate = useNavigate();
@@ -52,20 +53,23 @@ export default function HomeScreen() {
         }
       />
       <div className="flex-1 overflow-y-auto px-g4 pt-g5 pb-g8 space-y-g8">
-        <section className="rounded-card border border-border bg-gradient-to-br from-brand-royal/10 to-brand-aqua/10 p-g5 shadow-elevate-sm">
-          <div className="flex items-start gap-g3">
-            <Sparkles className="h-6 w-6 text-brand-royal shrink-0 mt-g1" />
-            <div className="space-y-g2">
-              <h2 className="type-title text-foreground text-balance">
-                {primary("오늘 밤의 하이라이트", "Tonight's highlights")}
+        <section className="relative overflow-hidden rounded-card bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 p-g5 shadow-elevate-sm">
+          <span aria-hidden className="pointer-events-none absolute right-20 top-2 text-sm text-white/20 select-none">✦</span>
+          <span aria-hidden className="pointer-events-none absolute bottom-3 right-14 text-xs text-white/15 select-none">★</span>
+          <span aria-hidden className="pointer-events-none absolute left-3 bottom-4 text-xs text-white/10 select-none">✦</span>
+          <div className="flex items-center gap-g3">
+            <div className="min-w-0 flex-1 space-y-g2">
+              <h2 className="type-title text-white text-balance">
+                {primary("오늘 밤의 하이라이트 🌙", "Tonight's highlights 🌙")}
               </h2>
-              <p className="type-body text-muted-foreground text-pretty">
+              <p className="type-body text-indigo-200/80 text-pretty">
                 {primary(
-                  "짧은 대기 시간, 버스킹 공연, 시원한 한강 바람",
-                  "Short waits, busking shows, cool river breeze",
+                  "짧은 대기 시간, 버스킹 공연, 시원한 바닷바람",
+                  "Short waits, busking shows, cool sea breeze",
                 )}
               </p>
             </div>
+            <img src={logoCharacter} alt="" aria-hidden className="h-16 w-16 shrink-0 object-contain drop-shadow-md opacity-90" />
           </div>
         </section>
 

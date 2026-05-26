@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { StackHeader } from "@/components/app/StackHeader";
 import { AppButton } from "@/components/app/AppButton";
+import { AuthFieldError, AuthRecoveryInlineLinks } from "@/components/auth/AuthRecoveryUi";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
@@ -79,22 +80,9 @@ export default function AuthLoginScreen() {
         noValidate
       >
         <div className="space-y-g2">
-
-          {credentialsMessage ? (
-            <p className="type-caption text-destructive">{credentialsMessage}</p>
-          ) : null}
-        </div>
-        <div className="space-y-g2">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-g2 gap-y-1">
-            <label className="type-caption font-medium text-foreground" htmlFor="auth-login-email">
-              {primary("이메일", "Email")}
-            </label>
-            {emailMessage ? (
-              <p className="type-caption text-destructive text-right max-w-[min(100%,220px)] leading-snug">
-                {emailMessage}
-              </p>
-            ) : null}
-          </div>
+          <label className="type-caption font-medium text-foreground" htmlFor="auth-login-email">
+            {primary("이메일", "Email")}
+          </label>
           <Input
             id="auth-login-email"
             type="email"
@@ -105,18 +93,12 @@ export default function AuthLoginScreen() {
             className={cn("rounded-chip h-11", emailError && inputErrorRing)}
             placeholder={primary("name@example.com", "name@example.com")}
           />
+          <AuthFieldError message={emailMessage} />
         </div>
         <div className="space-y-g2">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-g2 gap-y-1">
-            <label className="type-caption font-medium text-foreground" htmlFor="auth-login-password">
-              {primary("비밀번호", "Password")}
-            </label>
-            {passwordMessage ? (
-              <p className="type-caption text-destructive text-right max-w-[min(100%,220px)] leading-snug">
-                {passwordMessage}
-              </p>
-            ) : null}
-          </div>
+          <label className="type-caption font-medium text-foreground" htmlFor="auth-login-password">
+            {primary("비밀번호", "Password")}
+          </label>
           <Input
             id="auth-login-password"
             type="password"
@@ -130,7 +112,10 @@ export default function AuthLoginScreen() {
               "rounded-chip h-11",
               (passwordError || credentialsWrong) && triedSubmit && inputErrorRing,
             )}
+            placeholder={primary("비밀번호", "Password")}
           />
+          <AuthFieldError message={passwordMessage ?? credentialsMessage} />
+          <AuthRecoveryInlineLinks primary={primary} className="pt-g1" />
         </div>
         <AppButton
           type="submit"

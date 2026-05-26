@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import type { Coupon } from "@/data/coupons";
 import { formatCouponMeta } from "@/data/coupons";
+import { storeById } from "@/data/stores";
 import { AppBottomSheet } from "@/components/app/AppBottomSheet";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,7 @@ export function CouponCardUi({
   const { locale, primary } = useLanguage();
   const isActive = coupon.state === "active";
   const meta = formatCouponMeta(coupon.expiresAt, locale, new Date(), coupon.state);
+  const store = storeById(coupon.vendorId);
   const [qrOpen, setQrOpen] = useState(false);
 
   const showQr = isActive;
@@ -38,6 +40,14 @@ export function CouponCardUi({
           className,
         )}
       >
+        {store && (
+          <div className="mb-g2 inline-flex items-center gap-1 rounded-pill bg-brand-royal/10 px-g2 py-0.5">
+            <span aria-hidden className="text-[13px]">{store.emoji}</span>
+            <span className="text-[11px] font-semibold text-brand-royal">
+              {primary(store.name, store.nameEn)}
+            </span>
+          </div>
+        )}
         <div className="flex items-start gap-g3">
           {linkToDetail ? (
             <Link

@@ -10,6 +10,7 @@ import { useQueue } from "@/contexts/QueueContext";
 import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { cn } from "@/lib/utils";
+import logoCharacter from "@/assets/logo/character.png";
 
 type WaitFilter = StoreType | "all";
 
@@ -57,6 +58,7 @@ export default function WaitingScreen() {
       <div className="flex min-h-0 flex-1 flex-col bg-background">
         <TopUtilityBar />
         <div className="flex flex-1 flex-col items-center justify-center gap-g4 px-g6 text-center">
+          <img src={logoCharacter} alt="" aria-hidden className="h-24 w-24 object-contain opacity-80" />
           <p className="type-body text-muted-foreground text-pretty">
             {primary(
               "로그인하고 줄서기를 이용해보세요.",
@@ -81,13 +83,20 @@ export default function WaitingScreen() {
 
       <div className="min-h-0 flex-1 overflow-y-auto px-g4 py-g4">
         <h1 className="type-title font-bold text-foreground">{primary("예약 내역", "Reservations")}</h1>
+        <p className="mt-g3 type-caption text-muted-foreground">
+          {primary(
+            "입장 안내 후 5분이 지나면 줄서기가 자동으로 취소돼요.",
+            "Reservations are auto-cancelled 5 min after your turn.",
+          )}
+        </p>
 
         {activeQueues.length === 0 ? (
-          <div className="mt-g6 space-y-g4 text-center">
+          <div className="mt-g6 space-y-g4 text-center flex flex-col items-center">
+            <img src={logoCharacter} alt="" aria-hidden className="h-20 w-20 object-contain opacity-70" />
             <p className="type-body text-muted-foreground">
               {primary("웨이팅 중인 가게가 없어요.", "You’re not in any queue yet.")}
             </p>
-            <AppButton variant="primary" className="w-full max-w-sm mx-auto" onClick={() => navigate("/map")}>
+            <AppButton variant="primary" className="w-full max-w-sm" onClick={() => navigate("/map")}>
               {primary("지도·다이닝에서 줄 서기", "Browse stores on Maps")}
             </AppButton>
           </div>
@@ -96,6 +105,9 @@ export default function WaitingScreen() {
             <div className="mt-g4 flex gap-g2 overflow-x-auto pb-1 no-scrollbar">
               <FilterChip active={waitFilter === "all"} onClick={() => setWaitFilter("all")}>
                 {primary("전체", "All")}
+              </FilterChip>
+              <FilterChip active={waitFilter === "bakery"} onClick={() => setWaitFilter("bakery")}>
+                {primary("🥐 팝업 베이커리", "Popup Bakery")}
               </FilterChip>
               <FilterChip active={waitFilter === "food_court"} onClick={() => setWaitFilter("food_court")}>
                 {primary("포장마차", "Stalls")}
@@ -214,6 +226,16 @@ export default function WaitingScreen() {
                                 style={{ width: `${progressToTurn * 100}%` }}
                               />
                             </div>
+                            {atTurn && (
+                              <p className={cn(
+                                "mt-g2 type-caption",
+                                staleTurn ? "text-muted-foreground" : "text-amber-600 font-semibold",
+                              )}>
+                                {staleTurn
+                                  ? primary("입장 시간이 지나 곧 자동 취소돼요.", "Reservation expiring — time limit passed.")
+                                  : primary("지금 입장 차례예요! 5분 내에 오지 않으면 자동 취소돼요.", "It's your turn! Auto-cancelled after 5 min if you don't arrive.")}
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>

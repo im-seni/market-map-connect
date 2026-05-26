@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { BottomNav } from "@/components/app/BottomNav";
 import { PhoneFrame } from "@/components/app/PhoneFrame";
+import { SpotlightTour } from "@/components/app/SpotlightTour";
 
 export function MainLayout() {
   return (
@@ -9,6 +10,7 @@ export function MainLayout() {
         <Outlet />
       </div>
       <BottomNav />
+      <SpotlightTour />
     </PhoneFrame>
   );
 }

@@ -1,7 +1,7 @@
 import type { Ref } from "react";
 import { Star, ChevronLeft, Clock, Users, Ticket, Filter, Heart } from "lucide-react";
 import { AppButton } from "@/components/app/AppButton";
-import type { Store } from "@/data/stores";
+import { type Store, getBakeryStock } from "@/data/stores";
 import type { QueueTicket } from "@/contexts/QueueContext";
 import { cn } from "@/lib/utils";
 
@@ -150,6 +150,34 @@ export function DiningStoreDetailScroll({
         </div>
         <p className="type-caption text-muted-foreground mt-g2">{formatStoreAddress(store, primary)}</p>
 
+        {store.storeType === "bakery" && (() => {
+          const stock = getBakeryStock(store);
+          const isLow = stock != null && stock > 0 && stock <= 10;
+          const isSoldOut = stock === 0;
+          return (
+            <div className="mt-g3 rounded-card border border-amber-500/40 bg-amber-500/10 p-g3">
+              <div className="flex items-center gap-g2">
+                <span className="text-xl shrink-0">🎁</span>
+                <p className="type-body font-bold text-amber-700">{primary("무료 소금빵 증정!", "Free salt bread!")}</p>
+              </div>
+              <p className="mt-1 type-caption text-muted-foreground">
+                {primary("방문 시 1인 1개 · 소진 시 종료", "1 per person · while supplies last")}
+              </p>
+              {stock != null && (
+                <p className={cn(
+                  "mt-g2 text-xl font-extrabold tabular-nums",
+                  isSoldOut ? "text-destructive" : isLow ? "text-amber-600" : "text-emerald-600",
+                )}>
+                  {isSoldOut
+                    ? primary("현재 품절", "Currently sold out")
+                    : isLow
+                      ? primary(`마감 임박 · ${stock}개 남음`, `Almost gone · ${stock} left`)
+                      : primary(`${stock}개 남음`, `${stock} remaining`)}
+                </p>
+              )}
+            </div>
+          );
+        })()}
         <div className="mt-g3 grid grid-cols-2 gap-g2">
           <div className="flex items-center gap-g2 rounded-card border border-border bg-secondary/40 p-g3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-500/15">

@@ -3,6 +3,13 @@ import { NavLink } from "react-router-dom";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { cn } from "@/lib/utils";
 
+const TOUR_IDS: Record<string, string> = {
+  "/map":     "tab-map",
+  "/waiting": "tab-waiting",
+  "/event":   "tab-event",
+  "/coupons": "tab-rewards",
+};
+
 const navItems = [
   { to: "/map",     icon: MapPin,      ko: "지도·다이닝", en: "Maps"    },
   { to: "/waiting", icon: Clock,       ko: "웨이팅",     en: "Waiting" },
@@ -21,6 +28,7 @@ export function BottomNav() {
           <li key={to} className="min-w-0 flex-1">
             <NavLink
               to={to}
+              data-tour-id={TOUR_IDS[to]}
               className={({ isActive }) =>
                 cn(
                   "flex flex-col items-center gap-g1 rounded-chip py-g1 type-caption font-medium transition",

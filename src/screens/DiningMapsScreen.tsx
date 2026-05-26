@@ -23,6 +23,7 @@ import {
   type StoreType,
   getVendorStatus,
   waitTimeColorClass,
+  getBakeryStock,
 } from "@/data/stores";
 import { useQueue } from "@/contexts/QueueContext";
 import { useCoupons } from "@/contexts/CouponsContext";
@@ -65,6 +66,7 @@ const CATEGORY_NODES: CategoryNode[] = [
   { emoji: "🧋", label: "음료", labelEn: "Drinks", storeIds: ["2", "3"], side: "lower" as const, anchorT: 0.5 },
   { emoji: "🍭", label: "디저트", labelEn: "Dessert", storeIds: ["4", "6", "8"], side: "lower" as const, anchorT: 0.62 },
   { emoji: "🍢", label: "간식", labelEn: "Snacks", storeIds: ["1", "7"], side: "lower" as const, anchorT: 0.93 },
+  { emoji: "🥐", label: "팝업 베이커리", labelEn: "Popup Bakery", storeIds: ["16"], forcedLevel: "moderate" as const, side: "upper" as const, anchorT: 0.42 },
 ] as const;
 const DETAIL_ONLY_ZOOM_LEVEL = 2; // 기본(level 4)에서 2번 확대하면 level 2
 const ROAD_SIDE_INVERT = true; // 실제 지도 체감 방향과 수학 방향이 반대일 때 보정
@@ -75,10 +77,11 @@ const FISH_REPRESENTATIVE_UP_OFFSET = 0.0005; // 물고기 대표 핀 위쪽 보
 const FISH_REPRESENTATIVE_LEFT_OFFSET = 0.0005; // 물고기 대표 핀 왼쪽 보정
 
 const typeFilters: { id: StoreType | "all"; ko: string; en: string }[] = [
-  { id: "all",        ko: "전체",     en: "All"         },
-  { id: "food_court", ko: "포장마차", en: "Food Court"  },
-  { id: "food_truck", ko: "푸드트럭", en: "Food Truck"  },
-  { id: "restaurant", ko: "어시장 식당", en: "Market hall dining" },
+  { id: "all",        ko: "전체",             en: "All"              },
+  { id: "bakery",     ko: "🥐 팝업 베이커리", en: "Popup Bakery"     },
+  { id: "food_court", ko: "포장마차",         en: "Food Court"       },
+  { id: "food_truck", ko: "푸드트럭",         en: "Food Truck"       },
+  { id: "restaurant", ko: "어시장 식당",      en: "Market hall dining" },
 ];
 
 function vendorStatusTone(store: Store, primary: (ko: string, en: string) => string) {
@@ -105,6 +108,7 @@ const storePhotosById: Record<string, string[]> = {
   "13": ["https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=900&auto=format&fit=crop"],
   "14": ["https://images.unsplash.com/photo-1547592166-23ac45744acd?w=900&auto=format&fit=crop"],
   "15": ["https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=900&auto=format&fit=crop"],
+  "16": ["https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=900&auto=format&fit=crop"],
 };
 
 const storeAddressById: Record<string, string> = {
@@ -123,6 +127,7 @@ const storeAddressById: Record<string, string> = {
   "13": "인천 중구 연안부두로33번길 37",
   "14": "인천 중구 연안부두로33번길 35",
   "15": "인천 중구 연안부두로 일대 · 연안 여객 터미널",
+  "16": "인천 중구 연안부두로 35 (팝업 부스)",
 };
 
 function formatStoreAddress(store: Store, primaryFn: (ko: string, en: string) => string): string {
@@ -274,6 +279,7 @@ export default function DiningMapsScreen() {
     if (activeFilter === "food_truck") return ["간식", "디저트", "음료/스낵"];
     if (activeFilter === "food_court") return ["포장마차"];
     if (activeFilter === "restaurant") return ["어시장"];
+    if (activeFilter === "bakery") return ["팝업 베이커리"];
     return CATEGORY_NODES.map((n) => n.label);
   }, [activeFilter]);
 
@@ -1440,6 +1446,18 @@ export default function DiningMapsScreen() {
                               <Users className="h-3.5 w-3.5 shrink-0" />
                               {primary(`${store.queueCount}명`, `${store.queueCount}`)}
                             </span>
+                            {(() => {
+                              const stock = getBakeryStock(store);
+                              if (stock == null) return null;
+                              return (
+                                <span className={cn(
+                                  "inline-flex items-center gap-1 font-semibold tabular-nums",
+                                  stock > 20 ? "text-emerald-600" : stock > 0 ? "text-amber-600" : "text-destructive"
+                                )}>
+                                  🥐 {stock > 0 ? primary(`${stock}개 남음`, `${stock} left`) : primary("품절", "Sold out")}
+                                </span>
+                              );
+                            })()}
                           </div>
                           <div className="mt-g2 flex min-w-0 flex-wrap items-center gap-x-g2 gap-y-0.5 type-caption">
                             <span className="inline-flex shrink-0 items-center gap-1 font-semibold text-foreground">
@@ -1680,6 +1698,18 @@ export default function DiningMapsScreen() {
                                   <Users className="h-3.5 w-3.5 shrink-0" />
                                   {primary(`${store.queueCount}명`, `${store.queueCount}`)}
                                 </span>
+                                {(() => {
+                                  const stock = getBakeryStock(store);
+                                  if (stock == null) return null;
+                                  return (
+                                    <span className={cn(
+                                      "inline-flex items-center gap-1 font-semibold tabular-nums",
+                                      stock > 20 ? "text-emerald-600" : stock > 0 ? "text-amber-600" : "text-destructive"
+                                    )}>
+                                      🥐 {stock > 0 ? primary(`${stock}개 남음`, `${stock} left`) : primary("품절", "Sold out")}
+                                    </span>
+                                  );
+                                })()}
                               </div>
                               <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-g2 gap-y-0.5 type-caption">
                                 <span className="inline-flex shrink-0 items-center gap-1 font-semibold text-foreground">

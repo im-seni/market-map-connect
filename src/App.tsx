@@ -22,6 +22,9 @@ import SplashScreen from "./screens/SplashScreen.tsx";
 import LoginScreen from "./screens/LoginScreen.tsx";
 import AuthLoginScreen from "./screens/auth/AuthLoginScreen.tsx";
 import AuthSignUpScreen from "./screens/auth/AuthSignUpScreen.tsx";
+import AuthForgotPasswordScreen from "./screens/auth/AuthForgotPasswordScreen.tsx";
+import AuthForgotEmailScreen from "./screens/auth/AuthForgotEmailScreen.tsx";
+import AuthResetPasswordScreen from "./screens/auth/AuthResetPasswordScreen.tsx";
 import DiningMapsScreen from "./screens/DiningMapsScreen.tsx";
 import WaitingScreen from "./screens/WaitingScreen.tsx";
 import WaitingWalkRouteScreen from "./screens/WaitingWalkRouteScreen.tsx";
@@ -107,6 +110,9 @@ const App = () => (
               <Route path="/waiting/walk-route" element={<WaitingWalkRouteScreen />} />
               <Route path="/auth/login" element={<AuthLoginScreen />} />
               <Route path="/auth/sign-up" element={<AuthSignUpScreen />} />
+              <Route path="/auth/forgot-password" element={<AuthForgotPasswordScreen />} />
+              <Route path="/auth/forgot-email" element={<AuthForgotEmailScreen />} />
+              <Route path="/auth/reset-password" element={<AuthResetPasswordScreen />} />
             </Route>
 
             <Route path="/ds/00-foundation" element={<FoundationPage />} />

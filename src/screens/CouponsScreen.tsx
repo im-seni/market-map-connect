@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera, Gift, QrCode } from "lucide-react";
+import logoCharacter from "@/assets/logo/character.png";
+import { Camera, ChevronDown, ChevronRight, Gift, QrCode } from "lucide-react";
 import { TopUtilityBar } from "@/components/app/TopUtilityBar";
 import { CouponCardUi } from "@/components/app/CouponCardUi";
 import { AppButton } from "@/components/app/AppButton";
@@ -31,6 +32,7 @@ export default function CouponsScreen() {
   const { stamps, count, total, claimedCount } = useRewards();
   const [topTab, setTopTab] = useState<TopTab>("stamps");
   const [subTab, setSubTab] = useState<CouponState>("active");
+  const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
     if (topTab === "coupons") void refreshCoupons();
@@ -87,12 +89,12 @@ export default function CouponsScreen() {
           </div>
           <div className="flex-1 overflow-y-auto px-g4 py-g4 space-y-g3">
             {!user ? (
-              <div className="flex flex-col items-center justify-center text-center py-g8 gap-g2">
-                <Gift className="h-8 w-8 text-muted-foreground/50" />
+              <div className="flex flex-col items-center justify-center text-center py-g8 gap-g3">
+                <img src={logoCharacter} alt="" aria-hidden className="h-20 w-20 object-contain opacity-70" />
                 <p className="type-body text-muted-foreground">
                   {primary("로그인하면 쿠폰을 확인할 수 있어요", "Sign in to see your coupons")}
                 </p>
-                <AppButton variant="primary" className="mt-g2" onClick={() => navigate("/auth/login")}>
+                <AppButton variant="primary" className="mt-g2 w-full" onClick={() => navigate("/auth/login")}>
                   {primary("로그인", "Sign in")}
                 </AppButton>
               </div>
@@ -113,8 +115,8 @@ export default function CouponsScreen() {
                 ))}
               </div>
             ) : list.length === 0 ? (
-              <div className="flex flex-col items-center justify-center text-center py-g8 gap-g2">
-                <Gift className="h-8 w-8 text-muted-foreground/50" />
+              <div className="flex flex-col items-center justify-center text-center py-g8 gap-g3">
+                <img src={logoCharacter} alt="" aria-hidden className="h-20 w-20 object-contain opacity-70" />
                 <p className="type-body text-muted-foreground">
                   {primary("쿠폰이 없습니다", "No coupons yet")}
                 </p>
@@ -128,12 +130,53 @@ export default function CouponsScreen() {
         <div className="flex-1 overflow-y-auto px-g4 py-g6 space-y-g6">
           <div>
             <h2 className="type-title text-foreground">{primary("스탬프", "Stamps")}</h2>
-            <p className="type-body text-muted-foreground mt-g2 text-pretty">
-              {primary(
-                "스탬프 5개를 모으고 미니 요트 50% 할인 쿠폰을 받아보세요!",
-                "Collect 5 stamps and get a 50% off mini yacht coupon!",
+            <div className="mt-g3 overflow-hidden rounded-card border border-border">
+              <button
+                type="button"
+                onClick={() => setShowGuide((v) => !v)}
+                className="flex w-full items-center justify-between gap-g2 bg-secondary/30 px-g3 py-g2 text-left"
+              >
+                <span className="type-caption font-semibold text-foreground">
+                  {primary("이용 안내", "How it works")}
+                </span>
+                <ChevronDown
+                  className={cn(
+                    "h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform duration-200",
+                    showGuide && "rotate-180",
+                  )}
+                />
+              </button>
+              {showGuide && (
+                <div className="flex items-stretch gap-1 px-g3 pb-g3 pt-g2">
+                  {(
+                    [
+                      { titleKo: "QR 스캔", titleEn: "Scan QR", descKo: "가게에서 결제 후 영수증 QR 스캔", descEn: "Pay at vendor, then scan receipt QR" },
+                      { titleKo: "5개 완성", titleEn: "Collect 5", descKo: "스탬프 5개 적립 시 쿠폰 획득", descEn: "Earn 5 stamps to unlock a coupon" },
+                      { titleKo: "쿠폰 받기", titleEn: "Get coupon", descKo: "획득한 쿠폰은 쿠폰함에서 확인", descEn: "Find your coupon in the Coupons tab" },
+                    ] as const
+                  ).map((s, i, arr) => (
+                    <Fragment key={i}>
+                      <div className="flex flex-1 flex-col items-center gap-1 rounded-lg bg-background p-g2 text-center">
+                        <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-royal text-[10px] font-bold text-white">
+                          {i + 1}
+                        </div>
+                        <p className="text-[11px] font-bold leading-tight text-foreground">
+                          {primary(s.titleKo, s.titleEn)}
+                        </p>
+                        <p className="text-[10px] leading-tight text-muted-foreground">
+                          {primary(s.descKo, s.descEn)}
+                        </p>
+                      </div>
+                      {i < arr.length - 1 && (
+                        <div className="flex items-center self-center">
+                          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
+                        </div>
+                      )}
+                    </Fragment>
+                  ))}
+                </div>
               )}
-            </p>
+            </div>
           </div>
 
           <RewardStampRing current={count} total={total} />
@@ -164,6 +207,7 @@ export default function CouponsScreen() {
               <AppButton
                 variant="primary"
                 className="w-full"
+                data-tour-id="qr-scan-btn"
                 onClick={() => navigate("/scan?intent=checkin")}
               >
                 <Camera className="h-5 w-5" />
@@ -180,6 +224,7 @@ export default function CouponsScreen() {
             <AppButton
               variant="primary"
               className="w-full"
+              data-tour-id="qr-scan-btn"
               onClick={() => navigate("/auth/login")}
             >
               {primary("로그인하고 스탬프 적립하기", "Sign in to earn stamps")}
@@ -196,6 +241,7 @@ export default function CouponsScreen() {
               </p>
             </div>
           )}
+
         </div>
       )}
     </div>
